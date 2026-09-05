@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31005.135
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11612.150 stable
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContextMenuManager", "ContextMenuManager\ContextMenuManager.csproj", "{EF7E60E9-3565-42BA-AFB3-7FE73A1B011C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContextMenuManager", "ContextMenuManager.csproj", "{EF7E60E9-3565-42BA-AFB3-7FE73A1B011C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +20,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {A0E97C81-86B8-4360-8251-DF6FD4494EDA}
+		SolutionGuid = {54E0289F-86C8-4A6E-A0BC-33CF8B248602}
 	EndGlobalSection
 EndGlobal
