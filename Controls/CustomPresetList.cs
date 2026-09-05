@@ -17,6 +17,7 @@ namespace ContextMenuManager.Controls
 
         public void LoadItems()
         {
+            this.SuspendLayout();
             this.ClearItems();
             List<CustomPreset> items = CustomPresetsManager.GetPresetsByCategory(currentCategory);
 
@@ -24,13 +25,11 @@ namespace ContextMenuManager.Controls
 
             foreach (var extGroup in extGroups)
             {
-                // Nivel 0: Antetul de grup (doar dacă suntem în File sau dacă categoria are extensii)
-                if (currentCategory == PresetCategory.File)
+                if (currentCategory == PresetCategory.File || currentCategory == PresetCategory.Folder)
                 {
                     this.AddItem(new CustomPresetGroupItem(extGroup.Key, $"Manage context menu items for {extGroup.Key}"));
                 }
 
-                // Subgrupurile cascadate (ex: Config Application Run)
                 var subGroups = extGroup.GroupBy(p => p.SubMenuGroup);
 
                 foreach (var subGroup in subGroups)
@@ -41,28 +40,26 @@ namespace ContextMenuManager.Controls
                         string parentIcon = first.ParentMenu?.IconLocation ?? first.IconLocation;
                         string parentDesc = first.ParentMenu?.Description ?? $"Submenu for {subGroup.Key}";
 
-                        // Nivel 1: Submeniul părinte indentat cu 6 spații
-                        int headerIndent = (currentCategory == PresetCategory.File) ? 6 : 0;
+                        int headerIndent = (currentCategory == PresetCategory.File || currentCategory == PresetCategory.Folder) ? 1 : 0;
                         this.AddItem(new CustomPresetSubMenuHeaderItem(subGroup.Key, parentIcon, headerIndent, parentDesc));
 
-                        // Nivel 2: Opțiunile din interiorul submeniului indentate cu 13 spații
-                        int childIndent = (currentCategory == PresetCategory.File) ? 13 : 6;
+                        int childIndent = headerIndent + 1;
                         foreach (var preset in subGroup)
                         {
-                            this.AddItem(new CustomPresetItem(preset, indentSpaces: childIndent));
+                            this.AddItem(new CustomPresetItem(preset, indentLevel: childIndent));
                         }
                     }
                     else
                     {
-                        // Element de sine stătător (fără submeniu părinte)
-                        int directIndent = (currentCategory == PresetCategory.File) ? 6 : 0;
+                        int directIndent = (currentCategory == PresetCategory.File || currentCategory == PresetCategory.Folder) ? 1 : 0;
                         foreach (var preset in subGroup)
                         {
-                            this.AddItem(new CustomPresetItem(preset, indentSpaces: directIndent));
+                            this.AddItem(new CustomPresetItem(preset, indentLevel: directIndent));
                         }
                     }
                 }
             }
+            this.ResumeLayout(true);
         }
     }
 }

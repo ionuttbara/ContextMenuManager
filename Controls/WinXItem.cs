@@ -151,7 +151,7 @@ namespace ContextMenuManager.Controls
             using(SelectDialog dlg = new SelectDialog())
             {
                 dlg.Title = AppString.Dialog.SelectGroup;
-                dlg.Items = WinXList.GetGroupNames();
+             //   dlg.Items = WinXList.GetGroupNames();
                 dlg.Selected = this.FoldGroupItem.Text;
                 if(dlg.ShowDialog() != DialogResult.OK) return;
                 if(dlg.Selected == this.FoldGroupItem.Text) return;

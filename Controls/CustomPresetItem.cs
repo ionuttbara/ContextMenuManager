@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace ContextMenuManager.Controls
 {
-    // Antet nivel 0: Grupul de extensii
+    // Nivel 0: Antet categorie/extensie
     sealed class CustomPresetGroupItem : MyListItem
     {
         public string Description { get; set; }
@@ -23,26 +23,44 @@ namespace ContextMenuManager.Controls
         }
     }
 
-    // Antet nivel 1: Meniul cascadat parinte
+    // Nivel 1: Antet meniu cascadat (Submeniu parinte)
     sealed class CustomPresetSubMenuHeaderItem : MyListItem
     {
+        public int IndentLevel { get; set; } = 1;
         public string Description { get; set; }
         public string ItemFilePath => Description;
 
-        public CustomPresetSubMenuHeaderItem(string subMenuTitle, string iconLocation, int indentSpaces = 6, string description = null)
+        public CustomPresetSubMenuHeaderItem(string subMenuTitle, string iconLocation, int indentLevel = 1, string description = null)
         {
-            string spaces = new string(' ', indentSpaces);
-            this.Text = $"{spaces}{subMenuTitle}";
+            this.IndentLevel = indentLevel;
+            this.Text = subMenuTitle;
             this.Description = description ?? $"Submenu container for {subMenuTitle}";
             this.Image = IconHelper.GetIconImage(iconLocation) ?? AppImage.Custom;
             this.Font = new Font(this.Font.FontFamily, this.Font.Size, FontStyle.Bold);
             this.ForeColor = ThemeManager.IsDarkMode() ? Color.FromArgb(200, 200, 200) : Color.FromArgb(50, 50, 50);
         }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            int shift = IndentLevel * 28;
+            if (shift > 0)
+            {
+                e.Graphics.TranslateTransform(shift, 0);
+                base.OnPaint(e);
+                e.Graphics.ResetTransform();
+            }
+            else
+            {
+                base.OnPaint(e);
+            }
+        }
     }
 
-    // Element configurabil nivel 1 sau 2
+    // Nivel 1 sau 2: Element configurabil (Toggle Switch + Context Menu)
     sealed class CustomPresetItem : MyListItem, IChkVisibleItem
     {
+        public int IndentLevel { get; set; } = 0;
+
         public CustomPreset Preset { get; set; }
 
         public VisibleCheckBox ChkVisible { get; set; }
@@ -76,11 +94,11 @@ namespace ContextMenuManager.Controls
             }
         }
 
-        public CustomPresetItem(CustomPreset preset, int indentSpaces = 0)
+        public CustomPresetItem(CustomPreset preset, int indentLevel = 0)
         {
             this.Preset = preset;
-            string spaces = indentSpaces > 0 ? new string(' ', indentSpaces) : "";
-            this.Text = $"{spaces}{preset.Name}";
+            this.IndentLevel = indentLevel;
+            this.Text = preset.Name;
 
             this.Image = IconHelper.GetIconImage(preset.IconLocation) ?? AppImage.Custom;
 
@@ -88,6 +106,21 @@ namespace ContextMenuManager.Controls
             this.ChkVisible.Checked = this.ItemVisible;
 
             InitContextMenu();
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            int shift = IndentLevel * 28;
+            if (shift > 0)
+            {
+                e.Graphics.TranslateTransform(shift, 0);
+                base.OnPaint(e);
+                e.Graphics.ResetTransform();
+            }
+            else
+            {
+                base.OnPaint(e);
+            }
         }
 
         private void InitContextMenu()

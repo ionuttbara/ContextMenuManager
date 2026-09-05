@@ -21,10 +21,17 @@ namespace ContextMenuManager
             this.Text = AppString.General.AppName;
             this.Controls.Add(explorerRestarter);
             ToolBar.AddButtons(ToolBarButtons);
+
             MainBody.Controls.AddRange(MainControls);
+            foreach (Control c in MainControls) c.Visible = false;
+
             ToolBar.SelectedButtonChanged += (sender, e) => SwitchTab();
             SideBar.HoverIndexChanged += (sender, e) => ShowItemInfo();
-            SideBar.SelectIndexChanged += (sender, e) => SwitchItem();
+            SideBar.SelectIndexChanged += (sender, e) =>
+            {
+                if (!isSwitching) SwitchItem();
+            };
+
             this.FormClosing += (sender, e) => CloseMainForm();
             HoveredToShowItemPath();
             DragDropToAnalysis();
@@ -38,6 +45,7 @@ namespace ContextMenuManager
             new MyToolBarButton(AppImage.Home, "Current items"),
             new MyToolBarButton(AppImage.Type, AppString.ToolBar.Type),
             new MyToolBarButton(AppImage.Custom, "Add Custom Items"),
+            new MyToolBarButton(Properties.Resources.Delete, "Remove Default Menus"),
             new MyToolBarButton(AppImage.About, AppString.ToolBar.About)
         };
 
@@ -45,12 +53,13 @@ namespace ContextMenuManager
         {
             shellList, shellNewList, sendToList, openWithList, winXList,
             detailedEditList, guidBlockedList, iEList,
-            appSettingBox, dictionariesBox, aboutMeBox, storeAppsList,
-            customPresetList
+            appSettingBox, aboutMeBox, storeAppsList,
+            customPresetList, defaultRemovalList, terminalList
         };
 
         readonly ShellList shellList = new ShellList();
         readonly StoreAppsList storeAppsList = new StoreAppsList();
+        readonly TerminalList terminalList = new TerminalList();
         readonly ShellNewList shellNewList = new ShellNewList();
         readonly SendToList sendToList = new SendToList();
         readonly OpenWithList openWithList = new OpenWithList();
@@ -59,12 +68,15 @@ namespace ContextMenuManager
         readonly GuidBlockedList guidBlockedList = new GuidBlockedList();
         readonly IEList iEList = new IEList();
         readonly AppSettingBox appSettingBox = new AppSettingBox();
-        readonly DictionariesBox dictionariesBox = new DictionariesBox();
         readonly ReadOnlyRichTextBox aboutMeBox = new ReadOnlyRichTextBox();
         readonly ExplorerRestarter explorerRestarter = new ExplorerRestarter();
         readonly CustomPresetList customPresetList = new CustomPresetList();
+        readonly DefaultRemovalList defaultRemovalList = new DefaultRemovalList();
 
-        // Tab 0: Current items (toate elementele existente din sistem)
+        private Control currentActiveControl = null;
+        private bool isSwitching = false;
+
+        // Tab 0: Current items
         static readonly string[] GeneralItems =
         {
             AppString.SideBar.File,
@@ -78,6 +90,7 @@ namespace ContextMenuManager
             AppString.SideBar.RecycleBin,
             AppString.SideBar.Library,
             "Microsoft Store Apps",
+            "Terminal",
             null,
             AppString.SideBar.New,
             AppString.SideBar.SendTo,
@@ -99,6 +112,7 @@ namespace ContextMenuManager
             AppString.StatusBar.RecycleBin,
             AppString.StatusBar.Library,
             "UWP apps that add Windows 11 context menus",
+            "Configure 'Open terminal in place...' menu and Windows Terminal profiles",
             null,
             AppString.StatusBar.New,
             AppString.StatusBar.SendTo,
@@ -181,12 +195,38 @@ namespace ContextMenuManager
             AppString.StatusBar.Drive
         };
 
-        // Tab 3: About
+        // Tab 3: Remove Default Menus
+        static readonly string[] DefaultRemovalSideBarItems =
+        {
+            "All Items",
+            AppString.SideBar.File,
+            AppString.SideBar.Folder,
+            AppString.SideBar.Desktop,
+            AppString.SideBar.Drive,
+            "Media",
+            "System"
+        };
+
+        static readonly string[] DefaultRemovalSideBarItemInfos =
+        {
+            "Toate opțiunile de eliminare meniuri implicite",
+            "Meniuri implicite de pe fișiere",
+            "Meniuri implicite de pe foldere",
+            "Meniuri implicite de pe desktop",
+            "Meniuri implicite de pe partiții și drive-uri",
+            "Meniuri multimedia, fotografii și video",
+            "Meniuri implicite de sistem și securitate"
+        };
+
+        // Tab 4: About
         static readonly string[] AboutItems =
         {
             AppString.SideBar.AppSetting,
-            AppString.SideBar.Dictionaries,
             AppString.SideBar.AboutApp
+        };
+
+        static readonly string[] AboutItemInfos =
+        {
         };
 
         static readonly string[] SettingItems =
@@ -196,71 +236,99 @@ namespace ContextMenuManager
             AppString.Other.ShowFilePath,
             AppString.Other.HideDisabledItems,
             null,
-            AppString.Other.OpenMoreRegedit,
-            AppString.Other.OpenMoreExplorer
+            AppString.Other.OpenMoreRegedit
         };
 
-        readonly int[] lastItemIndex = new int[4];
+        readonly int[] lastItemIndex = new int[5];
 
         public void JumpItem(int toolBarIndex, int sideBarIndex)
         {
-            bool flag1 = ToolBar.SelectedIndex == toolBarIndex;
-            bool flag2 = SideBar.SelectedIndex == sideBarIndex;
-            lastItemIndex[toolBarIndex] = sideBarIndex;
-            ToolBar.SelectedIndex = toolBarIndex;
-            if (flag1 || flag2)
+            if (isSwitching) return;
+            isSwitching = true;
+            try
             {
+                lastItemIndex[toolBarIndex] = sideBarIndex;
+                if (ToolBar.SelectedIndex != toolBarIndex)
+                {
+                    ToolBar.SelectedIndex = toolBarIndex;
+                    UpdateSideBarNames();
+                }
                 SideBar.SelectedIndex = sideBarIndex;
-                SwitchItem();
+                ExecuteSwitchItem();
+            }
+            finally
+            {
+                isSwitching = false;
             }
         }
 
         private void SwitchTab()
         {
+            if (isSwitching) return;
+            isSwitching = true;
+            try
+            {
+                UpdateSideBarNames();
+                SideBar.SelectedIndex = lastItemIndex[ToolBar.SelectedIndex];
+                ExecuteSwitchItem();
+            }
+            finally
+            {
+                isSwitching = false;
+            }
+        }
+
+        private void UpdateSideBarNames()
+        {
             switch (ToolBar.SelectedIndex)
             {
-                case 0:
-                    SideBar.ItemNames = GeneralItems;
-                    break;
-                case 1:
-                    SideBar.ItemNames = TypeItems;
-                    break;
-                case 2:
-                    SideBar.ItemNames = CustomRuleItems;
-                    break;
-                case 3:
-                    SideBar.ItemNames = AboutItems;
-                    break;
+                case 0: SideBar.ItemNames = GeneralItems; break;
+                case 1: SideBar.ItemNames = TypeItems; break;
+                case 2: SideBar.ItemNames = CustomRuleItems; break;
+                case 3: SideBar.ItemNames = DefaultRemovalSideBarItems; break;
+                case 4: SideBar.ItemNames = AboutItems; break;
             }
-            SideBar.SelectedIndex = lastItemIndex[ToolBar.SelectedIndex];
+        }
+
+        private void ActivateControl(Control ctr, Action loadAction = null)
+        {
+            if (ctr == null) return;
+            MainBody.SuspendLayout();
+
+            foreach (Control c in MainControls)
+            {
+                if (c != ctr && c.Visible)
+                {
+                    c.Visible = false;
+                }
+            }
+
+            loadAction?.Invoke();
+
+            ctr.Visible = true;
+            ctr.BringToFront();
+            currentActiveControl = ctr;
+
+            MainBody.ResumeLayout(true);
         }
 
         private void SwitchItem()
         {
-            foreach (Control ctr in MainControls)
-            {
-                ctr.Visible = false;
-                if (ctr is MyList list) list.ClearItems();
-            }
             if (SideBar.SelectedIndex == -1) return;
+            ExecuteSwitchItem();
+            lastItemIndex[ToolBar.SelectedIndex] = SideBar.SelectedIndex;
+        }
 
+        private void ExecuteSwitchItem()
+        {
             switch (ToolBar.SelectedIndex)
             {
-                case 0:
-                    SwitchGeneralItem();
-                    break;
-                case 1:
-                    SwitchTypeItem();
-                    break;
-                case 2:
-                    SwitchCustomRuleItem();
-                    break;
-                case 3:
-                    SwitchAboutItem();
-                    break;
+                case 0: SwitchGeneralItem(); break;
+                case 1: SwitchTypeItem(); break;
+                case 2: SwitchCustomRuleItem(); break;
+                case 3: SwitchDefaultRemovalItem(); break;
+                case 4: SwitchAboutItem(); break;
             }
-            lastItemIndex[ToolBar.SelectedIndex] = SideBar.SelectedIndex;
-            this.SuspendMainBodyWhenMove = MainControls.ToList().Any(ctr => ctr.Controls.Count > 50);
         }
 
         private void ShowItemInfo()
@@ -278,6 +346,12 @@ namespace ContextMenuManager
                         break;
                     case 2:
                         if (i < CustomRuleItemInfos.Length) { StatusBar.Text = CustomRuleItemInfos[i]; return; }
+                        break;
+                    case 3:
+                        if (i < DefaultRemovalSideBarItemInfos.Length) { StatusBar.Text = DefaultRemovalSideBarItemInfos[i]; return; }
+                        break;
+                    case 4:
+                        if (i < AboutItemInfos.Length) { StatusBar.Text = AboutItemInfos[i]; return; }
                         break;
                 }
             }
@@ -298,8 +372,6 @@ namespace ContextMenuManager
                             StatusBar.Text = MyStatusBar.DefaultText;
                             return;
                         }
-
-                        
                         foreach (string prop in new[] { "Description", "ItemFilePath", "RegPath", "GroupPath", "SelectedPath" })
                         {
                             string path = item.GetType().GetProperty(prop)?.GetValue(item, null)?.ToString();
@@ -326,31 +398,32 @@ namespace ContextMenuManager
             switch (SideBar.SelectedIndex)
             {
                 case 10:
-                    storeAppsList.LoadItems();
-                    storeAppsList.Visible = true;
+                    ActivateControl(storeAppsList, () => { if (storeAppsList.Controls.Count == 0) storeAppsList.LoadItems(); });
                     break;
-                case 12:
-                    shellNewList.LoadItems();
-                    shellNewList.Visible = true;
+                case 11:
+                    ActivateControl(terminalList, () => terminalList.LoadItems());
                     break;
                 case 13:
-                    sendToList.LoadItems();
-                    sendToList.Visible = true;
+                    ActivateControl(shellNewList, () => { if (shellNewList.Controls.Count == 0) shellNewList.LoadItems(); });
                     break;
                 case 14:
-                    openWithList.LoadItems();
-                    openWithList.Visible = true;
+                    ActivateControl(sendToList, () => { if (sendToList.Controls.Count == 0) sendToList.LoadItems(); });
                     break;
-                case 16:
-                    winXList.LoadItems();
-                    winXList.Visible = true;
+                case 15:
+                    ActivateControl(openWithList, () => { if (openWithList.Controls.Count == 0) openWithList.LoadItems(); });
+                    break;
+                case 17:
+                    ActivateControl(winXList, () => winXList.LoadItems());
                     break;
                 default:
                     if (SideBar.SelectedIndex < 10)
                     {
-                        shellList.Scene = GeneralShellScenes[SideBar.SelectedIndex];
-                        shellList.LoadItems();
-                        shellList.Visible = true;
+                        var targetScene = GeneralShellScenes[SideBar.SelectedIndex];
+                        ActivateControl(shellList, () =>
+                        {
+                            shellList.Scene = targetScene;
+                            shellList.LoadItems();
+                        });
                     }
                     break;
             }
@@ -358,19 +431,35 @@ namespace ContextMenuManager
 
         private void SwitchTypeItem()
         {
-            shellList.Scene = (ShellList.Scenes)TypeShellScenes[SideBar.SelectedIndex];
-            shellList.LoadItems();
-            shellList.Visible = true;
+            var targetScene = (ShellList.Scenes)TypeShellScenes[SideBar.SelectedIndex];
+            ActivateControl(shellList, () =>
+            {
+                shellList.Scene = targetScene;
+                shellList.LoadItems();
+            });
         }
 
         private void SwitchCustomRuleItem()
         {
             if (SideBar.SelectedIndex >= 0 && SideBar.SelectedIndex < 4)
             {
-                customPresetList.Category = (PresetCategory)SideBar.SelectedIndex;
-                customPresetList.LoadItems();
-                customPresetList.Visible = true;
+                PresetCategory cat = (PresetCategory)SideBar.SelectedIndex;
+                ActivateControl(customPresetList, () =>
+                {
+                    customPresetList.Category = cat;
+                    customPresetList.LoadItems();
+                });
             }
+        }
+
+        private void SwitchDefaultRemovalItem()
+        {
+            int filter = SideBar.SelectedIndex;
+            ActivateControl(defaultRemovalList, () =>
+            {
+                defaultRemovalList.FilterIndex = filter;
+                defaultRemovalList.LoadItems();
+            });
         }
 
         private void SwitchAboutItem()
@@ -378,24 +467,59 @@ namespace ContextMenuManager
             switch (SideBar.SelectedIndex)
             {
                 case 0:
-                    appSettingBox.LoadItems();
-                    appSettingBox.Visible = true;
+                    ActivateControl(appSettingBox, () => { if (appSettingBox.Controls.Count == 0) appSettingBox.LoadItems(); });
                     break;
                 case 1:
-                    dictionariesBox.LoadText();
-                    dictionariesBox.Visible = true;
-                    break;
-                case 2:
-                    if (aboutMeBox.TextLength == 0) aboutMeBox.LoadIni(AppString.Other.AboutApp);
-                    aboutMeBox.Visible = true;
+                    ActivateControl(aboutMeBox, () => LoadAboutInfo());
                     break;
             }
+        }
+
+        private void LoadAboutInfo()
+        {
+            if (aboutMeBox.TextLength > 0) return;
+
+            aboutMeBox.SuspendLayout();
+            aboutMeBox.Clear();
+            aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 13, FontStyle.Bold);
+            aboutMeBox.SelectionColor = ThemeManager.IsDarkMode() ? Color.FromArgb(80, 160, 240) : Color.FromArgb(0, 102, 204);
+            aboutMeBox.AppendText("ContextMenuManager (Enhanced Community Fork)\n\n");
+
+            aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
+            aboutMeBox.SelectionColor = ThemeManager.IsDarkMode() ? Color.White : Color.Black;
+            aboutMeBox.AppendText("About this Project:\n");
+            aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
+            aboutMeBox.AppendText("This software is an enhanced fork of the original open-source ContextMenuManager application by BluePointLilac.\n");
+            aboutMeBox.AppendText("Maintained, redesigned and modernized by Ionut Bara.\n\n");
+
+            aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
+            aboutMeBox.AppendText("Repository & Documentation:\n");
+            aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
+            aboutMeBox.AppendText("https://github.com/ionuttbara/ContextMenuManager\n\n");
+
+            aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
+            aboutMeBox.AppendText("Technical Details:\n");
+            aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
+            aboutMeBox.AppendText("• Platform: Microsoft .NET Framework 4.8\n");
+            aboutMeBox.AppendText("• Architecture: AnyCPU (Native 64-bit / ARM64 / 32-bit execution)\n");
+            aboutMeBox.AppendText("• DPI Awareness: Per-Monitor V2 High-DPI auto-rescaling enabled\n\n");
+
+            aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
+            aboutMeBox.AppendText("Key Features in this Community Fork:\n");
+            aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
+            aboutMeBox.AppendText("1. Windows Terminal Integration: Dynamic profile discovery from settings.json across all editions (Stable, Preview, Canary, Dev, Unpackaged) with JSON Profile Backup & Restore and native CMD / PowerShell 5 fallback.\n");
+            aboutMeBox.AppendText("2. Add Custom Items: Deep system presets including Dedicated vs. Integrated GPU preferences, real-time CPU priority, Windows Firewall access rules, NT SERVICE\\TrustedInstaller privileges, Take Ownership, and recursive file tools.\n");
+            aboutMeBox.AppendText("3. Remove Default Menus: Registry toggle hub to eliminate unwanted built-in context menus (Previous Versions, Print, Send To, Troubleshoot Compatibility, BitLocker Drive, Defender EPP, ISO Burn, etc.) with instant non-destructive restoration.\n");
+            aboutMeBox.AppendText("4. Win+X Stability Protection: Automated duplicate detection and cleanup preventing Windows Update and system restarts from restoring duplicate default shortcuts.\n");
+            aboutMeBox.AppendText("5. Instant Performance: GDI icon memory caching and multi-pass layout suspension delivering instantaneous tab and submenu switching.");
+
+            aboutMeBox.ResumeLayout();
         }
 
         private void ResizeSideBar()
         {
             SideBar.Width = 0;
-            string[] strs = GeneralItems.Concat(TypeItems).Concat(CustomRuleItems).Concat(AboutItems).ToArray();
+            string[] strs = GeneralItems.Concat(TypeItems).Concat(CustomRuleItems).Concat(DefaultRemovalSideBarItems).Concat(AboutItems).ToArray();
             Array.ForEach(strs, str => SideBar.Width = Math.Max(SideBar.Width, SideBar.GetItemWidth(str)));
         }
 
@@ -406,7 +530,8 @@ namespace ContextMenuManager
                 { ToolBarButtons[0], GeneralItems },
                 { ToolBarButtons[1], TypeItems },
                 { ToolBarButtons[2], CustomRuleItems },
-                { ToolBarButtons[3], SettingItems }
+                { ToolBarButtons[3], DefaultRemovalSideBarItems },
+                { ToolBarButtons[4], SettingItems }
             };
 
             foreach (var item in dic)
@@ -439,7 +564,7 @@ namespace ContextMenuManager
                         cms.Items.Add(tsi);
                         int toolBarIndex = ToolBar.Controls.GetChildIndex(item.Key);
                         int index = i;
-                        if (toolBarIndex != 3)
+                        if (toolBarIndex != 4)
                         {
                             tsi.Click += (sender, e) => JumpItem(toolBarIndex, index);
                             cms.Opening += (sender, e) => tsi.Checked = lastItemIndex[toolBarIndex] == index;
@@ -458,8 +583,6 @@ namespace ContextMenuManager
                                         AppConfig.HideDisabledItems = !tsi.Checked; SwitchItem(); break;
                                     case 5:
                                         AppConfig.OpenMoreRegedit = !tsi.Checked; break;
-                                    case 6:
-                                        AppConfig.OpenMoreExplorer = !tsi.Checked; break;
                                 }
                             };
                             cms.Opening += (sender, e) =>
@@ -474,8 +597,6 @@ namespace ContextMenuManager
                                         tsi.Checked = AppConfig.HideDisabledItems; break;
                                     case 5:
                                         tsi.Checked = AppConfig.OpenMoreRegedit; break;
-                                    case 6:
-                                        tsi.Checked = AppConfig.OpenMoreExplorer; break;
                                 }
                             };
                         }

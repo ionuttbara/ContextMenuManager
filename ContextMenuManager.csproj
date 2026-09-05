@@ -157,6 +157,12 @@
     <Compile Include="Controls\CustomPresetList.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Controls\DefaultRemovalItem.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\DefaultRemovalList.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controls\DetailedEditDialog.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -175,6 +181,12 @@
     <Compile Include="Controls\SwitchDicList.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Controls\TerminalItem.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\TerminalList.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Methods\AppConfig.cs" />
     <Compile Include="BluePointLilac.Methods\FormExtension.cs" />
     <Compile Include="BluePointLilac.Methods\MessageBoxEx.cs" />
@@ -190,6 +202,7 @@
     </Compile>
     <Compile Include="BluePointLilac.Methods\ComboBoxExtension.cs" />
     <Compile Include="Methods\CustomPresetsManager.cs" />
+    <Compile Include="Methods\DefaultMenuRemovalManager.cs" />
     <Compile Include="Methods\DesktopIni.cs" />
     <Compile Include="BluePointLilac.Methods\DirectoryEx.cs" />
     <Compile Include="BluePointLilac.Methods\ElevatedFileDroper.cs" />
@@ -204,6 +217,7 @@
     <Compile Include="BluePointLilac.Methods\StringExtension.cs" />
     <Compile Include="BluePointLilac.Methods\TextBoxExtension.cs" />
     <Compile Include="Methods\IconHelper.cs" />
+    <Compile Include="Methods\TerminalProfilesManager.cs" />
     <Compile Include="Methods\UwpHelper.cs" />
     <Compile Include="BluePointLilac.Methods\WinOsVersion.cs" />
     <Compile Include="BluePointLilac.Methods\ShellLink.cs" />

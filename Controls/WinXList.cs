@@ -16,7 +16,7 @@ namespace ContextMenuManager.Controls
 
         public void LoadItems()
         {
-            if(WinOsVersion.Current >= WinOsVersion.Win8)
+            if (WinOsVersion.Current >= WinOsVersion.Win8)
             {
                 this.AddNewItem();
                 this.LoadWinXItems();
@@ -28,29 +28,29 @@ namespace ContextMenuManager.Controls
             string[] dirPaths = Directory.GetDirectories(WinXPath);
             Array.Reverse(dirPaths);
             bool sorted = false;
-            foreach(string dirPath in dirPaths)
+            foreach (string dirPath in dirPaths)
             {
                 WinXGroupItem groupItem = new WinXGroupItem(dirPath);
                 this.AddItem(groupItem);
                 string[] lnkPaths;
-                if(AppConfig.WinXSortable)
+                if (AppConfig.WinXSortable)
                 {
                     lnkPaths = GetSortedPaths(dirPath, out bool flag);
-                    if(flag) sorted = true;
+                    if (flag) sorted = true;
                 }
                 else
                 {
                     lnkPaths = Directory.GetFiles(dirPath, "*.lnk");
                     Array.Reverse(lnkPaths);
                 }
-                foreach(string path in lnkPaths)
+                foreach (string path in lnkPaths)
                 {
                     WinXItem winXItem = new WinXItem(path, groupItem);
                     winXItem.BtnMoveDown.Visible = winXItem.BtnMoveUp.Visible = AppConfig.WinXSortable;
                     this.AddItem(winXItem);
                 }
             }
-            if(sorted)
+            if (sorted)
             {
                 ExplorerRestarter.Show();
                 AppMessageBox.Show(AppString.Message.WinXSorted);
@@ -67,14 +67,14 @@ namespace ContextMenuManager.Controls
             btnCreateDir.MouseDown += (sender, e) => CreateNewGroup();
             newItem.AddNewItem += () =>
             {
-                using(NewLnkFileDialog dlg1 = new NewLnkFileDialog())
+                using (NewLnkFileDialog dlg1 = new NewLnkFileDialog())
                 {
-                    if(dlg1.ShowDialog() != DialogResult.OK) return;
-                    using(SelectDialog dlg2 = new SelectDialog())
+                    if (dlg1.ShowDialog() != DialogResult.OK) return;
+                    using (SelectDialog dlg2 = new SelectDialog())
                     {
                         dlg2.Title = AppString.Dialog.SelectGroup;
                         dlg2.Items = GetGroupNames();
-                        if(dlg2.ShowDialog() != DialogResult.OK) return;
+                        if (dlg2.ShowDialog() != DialogResult.OK) return;
                         string dirName = dlg2.Selected;
                         string dirPath = $@"{WinXPath}\{dirName}";
                         string itemText = dlg1.ItemText;
@@ -87,9 +87,9 @@ namespace ContextMenuManager.Controls
                         string index = (count + 1).ToString().PadLeft(2, '0');
                         string lnkName = $"{index} - {fileName}.lnk";
                         string lnkPath = $@"{dirPath}\{lnkName}";
-                        using(ShellLink shellLink = new ShellLink(lnkPath))
+                        using (ShellLink shellLink = new ShellLink(lnkPath))
                         {
-                            if(extension == ".lnk")
+                            if (extension == ".lnk")
                             {
                                 File.Copy(targetPath, lnkPath);
                                 shellLink.Load();
@@ -104,9 +104,9 @@ namespace ContextMenuManager.Controls
                             shellLink.Save();
                         }
                         DesktopIni.SetLocalizedFileNames(lnkPath, itemText);
-                        foreach(MyListItem ctr in this.Controls)
+                        foreach (MyListItem ctr in this.Controls)
                         {
-                            if(ctr is WinXGroupItem groupItem && groupItem.Text == dirName)
+                            if (ctr is WinXGroupItem groupItem && groupItem.Text == dirName)
                             {
                                 WinXItem item = new WinXItem(lnkPath, groupItem) { Visible = !groupItem.IsFold };
                                 item.BtnMoveDown.Visible = item.BtnMoveUp.Visible = AppConfig.WinXSortable;
@@ -136,7 +136,7 @@ namespace ContextMenuManager.Controls
         {
             List<string> items = new List<string>();
             DirectoryInfo winxDi = new DirectoryInfo(WinXPath);
-            foreach(DirectoryInfo di in winxDi.GetDirectories()) items.Add(di.Name);
+            foreach (DirectoryInfo di in winxDi.GetDirectories()) items.Add(di.Name);
             items.Reverse();
             return items.ToArray();
         }
@@ -146,30 +146,30 @@ namespace ContextMenuManager.Controls
             sorted = false;
             List<string> sortedPaths = new List<string>();
             string[] paths = Directory.GetFiles(groupPath, "*.lnk");
-            for(int i = paths.Length - 1; i >= 0; i--)
+            for (int i = paths.Length - 1; i >= 0; i--)
             {
                 string srcPath = paths[i];
                 string name = Path.GetFileName(srcPath);
                 int index = name.IndexOf(" - ");
-                if(index >= 2 && int.TryParse(name.Substring(0, index), out int num) && num == i + 1)
+                if (index >= 2 && int.TryParse(name.Substring(0, index), out int num) && num == i + 1)
                 {
                     sortedPaths.Add(srcPath); continue;
                 }
-                if(index >= 0) name = name.Substring(index + 3);
+                if (index >= 0) name = name.Substring(index + 3);
                 string dstPath = $@"{groupPath}\{(i + 1).ToString().PadLeft(2, '0')} - {name}";
                 dstPath = ObjectPath.GetNewPathWithIndex(dstPath, ObjectPath.PathType.File);
 
                 string value;
-                using(ShellLink srcLnk = new ShellLink(srcPath))
+                using (ShellLink srcLnk = new ShellLink(srcPath))
                 {
                     value = srcLnk.Description?.Trim();
                 }
-                if(string.IsNullOrEmpty(value)) value = DesktopIni.GetLocalizedFileNames(srcPath);
-                if(string.IsNullOrEmpty(value)) value = Path.GetFileNameWithoutExtension(name);
+                if (string.IsNullOrEmpty(value)) value = DesktopIni.GetLocalizedFileNames(srcPath);
+                if (string.IsNullOrEmpty(value)) value = Path.GetFileNameWithoutExtension(name);
                 DesktopIni.DeleteLocalizedFileNames(srcPath);
                 DesktopIni.SetLocalizedFileNames(dstPath, value);
                 File.Move(srcPath, dstPath);
-                using(ShellLink dstLnk = new ShellLink(dstPath))
+                using (ShellLink dstLnk = new ShellLink(dstPath))
                 {
                     dstLnk.Description = value;
                     dstLnk.Save();

@@ -147,13 +147,15 @@ namespace ContextMenuManager.Methods
 
         static CustomPresetsManager()
         {
-            InitExePresets();
-            InitScriptPresets();
+            InitFilePresets();
+            InitFolderPresets();
+            InitDrivePresets();
             InitDesktopPresets();
         }
 
-        private static void InitExePresets()
+        private static void InitFilePresets()
         {
+            // === EXECUTABLES (.exe) ===
             var appRunParent = new CustomPresetParent
             {
                 KeyPath = @"exefile\shell\AppRunConfig",
@@ -168,12 +170,11 @@ namespace ContextMenuManager.Methods
                 }
             };
 
-            // 1. Set GPU Usage[cite: 8]
             var gpu = new CustomPreset
             {
                 Id = "ExeGpu",
                 Name = "Set GPU Usage",
-                Description = "Configures DirectX preference to launch this app using Dedicated or Integrated GPU",
+                Description = "Configures DirectX preferences to launch application using Dedicated or Integrated GPU",
                 Category = PresetCategory.File,
                 ExtensionGroup = "Applications (.exe)",
                 SubMenuGroup = "Config Application Run",
@@ -186,21 +187,18 @@ namespace ContextMenuManager.Methods
             eGpu.Add("SubCommands", "");
             eGpu.Add("Icon", "dxdiag.exe");
             gpu.Entries.Add(eGpu);
-
             var eGpu1 = new RegistryKeyEntry(@"shell\001flyout");
             eGpu1.Add("@", "Set to Dedicated GPU");
             gpu.Entries.Add(eGpu1);
             var eGpu1Cmd = new RegistryKeyEntry(@"shell\001flyout\command");
             eGpu1Cmd.Add("@", @"C:\Windows\System32\REG.exe ADD HKEY_CURRENT_USER\SOFTWARE\Microsoft\DirectX\UserGpuPreferences /f /v ""%1"" /d GpuPreference=2;");
             gpu.Entries.Add(eGpu1Cmd);
-
             var eGpu2 = new RegistryKeyEntry(@"shell\002flyout");
             eGpu2.Add("@", "Set to Integrated GPU");
             gpu.Entries.Add(eGpu2);
             var eGpu2Cmd = new RegistryKeyEntry(@"shell\002flyout\command");
             eGpu2Cmd.Add("@", @"C:\Windows\System32\REG.exe ADD HKEY_CURRENT_USER\SOFTWARE\Microsoft\DirectX\UserGpuPreferences /f /v ""%1"" /d GpuPreference=1;");
             gpu.Entries.Add(eGpu2Cmd);
-
             var eGpu3 = new RegistryKeyEntry(@"shell\003flyout");
             eGpu3.Add("@", "Reset GPU usage...");
             gpu.Entries.Add(eGpu3);
@@ -209,7 +207,6 @@ namespace ContextMenuManager.Methods
             gpu.Entries.Add(eGpu3Cmd);
             Presets.Add(gpu);
 
-            // 2. Run with Priority[cite: 9]
             var prio = new CustomPreset
             {
                 Id = "ExePriority",
@@ -227,7 +224,6 @@ namespace ContextMenuManager.Methods
             ePrio.Add("SubCommands", "");
             ePrio.Add("Icon", "taskmgr.exe");
             prio.Entries.Add(ePrio);
-
             string[] prios = { "Realtime", "High", "Above normal", "Normal", "Below normal", "Low" };
             string[] flags = { "/Realtime", "/High", "/AboveNormal", "/Normal", "/BelowNormal", "/Low" };
             for (int i = 0; i < prios.Length; i++)
@@ -242,7 +238,6 @@ namespace ContextMenuManager.Methods
             }
             Presets.Add(prio);
 
-            // 3. Configure Internet Access[cite: 9]
             var fw = new CustomPreset
             {
                 Id = "ExeFirewall",
@@ -260,7 +255,6 @@ namespace ContextMenuManager.Methods
             eFw.Add("icon", @"%SystemRoot%\system32\FirewallControlPanel.dll,0");
             eFw.Add("subcommands", "");
             fw.Entries.Add(eFw);
-
             var eBlock = new RegistryKeyEntry(@"Shell\block");
             eBlock.Add("MUIVerb", "Block internet access");
             eBlock.Add("icon", @"%SystemRoot%\system32\imageres.dll,100");
@@ -268,7 +262,6 @@ namespace ContextMenuManager.Methods
             var eBlockCmd = new RegistryKeyEntry(@"Shell\block\command");
             eBlockCmd.Add("@", "\"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -Executionpolicy ByPass -WindowStyle Hidden -NoLogo -Command \"start powershell -Verb runas -ArgumentList \\\"-NoLogo -WindowStyle Hidden -command `\\\"New-NetFirewallRule -DisplayName ([System.IO.Path]::GetFilenameWithoutExtension('%1')) -Name '%1' -Enabled True -Direction Outbound -Action Block -Program '%1'`\\\"\\\"\"");
             fw.Entries.Add(eBlockCmd);
-
             var eRem = new RegistryKeyEntry(@"Shell\Remove");
             eRem.Add("MUIVerb", "Restore the internet access");
             eRem.Add("icon", @"%SystemRoot%\system32\imageres.dll,101");
@@ -292,7 +285,6 @@ namespace ContextMenuManager.Methods
                 }
             };
 
-            // 4. Run as TrustedInstaller[cite: 7]
             var ti = new CustomPreset
             {
                 Id = "ExeTrustedInstaller",
@@ -310,15 +302,159 @@ namespace ContextMenuManager.Methods
             eTi.Add("HasLUAShield", "");
             eTi.Add("Icon", "powershell.exe,0");
             ti.Entries.Add(eTi);
-
             var eTiCmd = new RegistryKeyEntry("command");
             eTiCmd.Add("@", @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -win 1 -nop -c iex((10..40|%{(gp 'Registry::HKCR\RunAsTI' $_ -ea 0).$_})-join[char]10); # --% ""%L""");
             ti.Entries.Add(eTiCmd);
             Presets.Add(ti);
-        }
 
-        private static void InitScriptPresets()
-        {
+            // === ALL FILES (*) ===
+            var fileMgmtParent = new CustomPresetParent
+            {
+                KeyPath = @"*\shell\FileManagement",
+                Title = "File Management",
+                Description = "Cascaded file tools for hashing, permissions, and visibility",
+                IconLocation = "shell32.dll,0",
+                Values =
+                {
+                    new RegistryValueItem("Icon", "shell32.dll,0"),
+                    new RegistryValueItem("MUIVerb", "File Management"),
+                    new RegistryValueItem("Position", "Middle"),
+                    new RegistryValueItem("SubCommands", "")
+                }
+            };
+
+            var takeOwn = new CustomPreset
+            {
+                Id = "FileTakeOwnership",
+                Name = "Take Ownership",
+                Description = "Grant full administrator ownership and permissions for the selected file",
+                Category = PresetCategory.File,
+                ExtensionGroup = "All Files (*)",
+                SubMenuGroup = "File Management",
+                IconLocation = "imageres.dll,-5324",
+                ParentMenu = fileMgmtParent,
+                RootKeyPath = @"*\shell\FileManagement\shell\0TakeOwnership"
+            };
+            var eOwn = new RegistryKeyEntry("");
+            eOwn.Add("@", "Take Ownership");
+            eOwn.Add("HasLUAShield", "");
+            eOwn.Add("NoWorkingDirectory", "");
+            eOwn.Add("NeverDefault", "");
+            takeOwn.Entries.Add(eOwn);
+            var eOwnCmd = new RegistryKeyEntry("command");
+            eOwnCmd.Add("@", "powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/c takeown /f \\\"%1\\\" && icacls \\\"%1\\\" /grant *S-1-3-4:F /t /c /l' -Verb runAs\"");
+            takeOwn.Entries.Add(eOwnCmd);
+            Presets.Add(takeOwn);
+
+            var hashMenu = new CustomPreset
+            {
+                Id = "FileCalculateHash",
+                Name = "Calculate Hash",
+                Description = "Compute SHA1, SHA256, SHA384, SHA512, MD5, or RIPEMD160 hashes",
+                Category = PresetCategory.File,
+                ExtensionGroup = "All Files (*)",
+                SubMenuGroup = "File Management",
+                IconLocation = "shell32.dll,-16739",
+                ParentMenu = fileMgmtParent,
+                RootKeyPath = @"*\shell\FileManagement\shell\GetFileHash"
+            };
+            var eHash = new RegistryKeyEntry("");
+            eHash.Add("MUIVerb", "Calculate Hash");
+            eHash.Add("SubCommands", "");
+            hashMenu.Entries.Add(eHash);
+            string[] algs = { "SHA1", "SHA256", "SHA384", "SHA512", "MD5", "RIPEMD160" };
+            for (int i = 0; i < algs.Length; i++)
+            {
+                string sub = $"shell\\0{i + 1}{algs[i]}";
+                var ea = new RegistryKeyEntry(sub);
+                ea.Add("MUIVerb", algs[i]);
+                hashMenu.Entries.Add(ea);
+                var eac = new RegistryKeyEntry($"{sub}\\command");
+                eac.Add("@", $"powershell.exe -noexit get-filehash -literalpath '%1' -algorithm {algs[i]} | format-list");
+                hashMenu.Entries.Add(eac);
+            }
+            Presets.Add(hashMenu);
+
+            var clipContent = new CustomPreset
+            {
+                Id = "FileClipContent",
+                Name = "Copy Content to Clipboard",
+                Description = "Copies file content directly into Windows clipboard",
+                Category = PresetCategory.File,
+                ExtensionGroup = "All Files (*)",
+                SubMenuGroup = "File Management",
+                IconLocation = "DxpTaskSync.dll,-52",
+                ParentMenu = fileMgmtParent,
+                RootKeyPath = @"*\shell\FileManagement\shell\Copy Content to Clipboard"
+            };
+            var eClip = new RegistryKeyEntry("");
+            eClip.Add("MUIVerb", "Copy Content to Clipboard");
+            eClip.Add("Icon", "DxpTaskSync.dll,-52");
+            eClip.Add("Position", "Center");
+            clipContent.Entries.Add(eClip);
+            var eClipCmd = new RegistryKeyEntry("Command");
+            eClipCmd.Add("@", "cmd /c clip < \"%1\"");
+            clipContent.Entries.Add(eClipCmd);
+            Presets.Add(clipContent);
+
+            var fileVis = new CustomPreset
+            {
+                Id = "FileVisibility",
+                Name = "File Visibility (Attributes)",
+                Description = "Set Not Hidden, Hidden, or System Hidden attributes on this file",
+                Category = PresetCategory.File,
+                ExtensionGroup = "All Files (*)",
+                SubMenuGroup = "File Management",
+                IconLocation = "imageres.dll,-5314",
+                ParentMenu = fileMgmtParent,
+                RootKeyPath = @"*\shell\FileManagement\shell\HiddenAttribute"
+            };
+            var eVis = new RegistryKeyEntry("");
+            eVis.Add("MUIVerb", "File Visibility");
+            eVis.Add("SubCommands", "");
+            eVis.Add("Icon", "imageres.dll,-5314");
+            fileVis.Entries.Add(eVis);
+            var eV0 = new RegistryKeyEntry(@"Shell\Item0");
+            eV0.Add("MUIVerb", "Not Hidden");
+            fileVis.Entries.Add(eV0);
+            var eV0C = new RegistryKeyEntry(@"Shell\Item0\Command");
+            eV0C.Add("@", "attrib -s -h \"%1\"");
+            fileVis.Entries.Add(eV0C);
+            var eV1 = new RegistryKeyEntry(@"Shell\Item1");
+            eV1.Add("MUIVerb", "Hidden");
+            fileVis.Entries.Add(eV1);
+            var eV1C = new RegistryKeyEntry(@"Shell\Item1\Command");
+            eV1C.Add("@", "attrib -s +h \"%1\"");
+            fileVis.Entries.Add(eV1C);
+            var eV2 = new RegistryKeyEntry(@"Shell\Item2");
+            eV2.Add("MUIVerb", "System Hidden");
+            fileVis.Entries.Add(eV2);
+            var eV2C = new RegistryKeyEntry(@"Shell\Item2\Command");
+            eV2C.Add("@", "attrib +s +h \"%1\"");
+            fileVis.Entries.Add(eV2C);
+            Presets.Add(fileVis);
+
+            var permDel = new CustomPreset
+            {
+                Id = "FilePermanentDelete",
+                Name = "Permanent Delete",
+                Description = "Bypass the Recycle Bin and permanently remove the selected file",
+                Category = PresetCategory.File,
+                ExtensionGroup = "All Files (*)",
+                SubMenuGroup = "File Management",
+                IconLocation = "shell32.dll,-240",
+                ParentMenu = fileMgmtParent,
+                RootKeyPath = @"*\shell\FileManagement\shell\Windows.PermanentDelete"
+            };
+            var eDel = new RegistryKeyEntry("");
+            eDel.Add("CommandStateSync", "");
+            eDel.Add("ExplorerCommandHandler", "{E9571AB2-AD92-4ec6-8924-4E5AD33790F5}");
+            eDel.Add("Icon", "shell32.dll,-240");
+            eDel.Add("Position", "Bottom");
+            permDel.Entries.Add(eDel);
+            Presets.Add(permDel);
+
+            // === POWERSHELL SCRIPTS (.ps1) ===
             var ps1 = new CustomPreset
             {
                 Id = "Ps1RunAs",
@@ -337,6 +473,7 @@ namespace ContextMenuManager.Methods
             ps1.Entries.Add(ePs1Cmd);
             Presets.Add(ps1);
 
+            // === VBSCRIPTS (.vbs) ===
             var vbs = new CustomPreset
             {
                 Id = "VbsRunAs",
@@ -355,10 +492,11 @@ namespace ContextMenuManager.Methods
             vbs.Entries.Add(eVbsCmd);
             Presets.Add(vbs);
 
+            // === MSI PACKAGES (.msi) ===
             var msi = new CustomPreset
             {
                 Id = "MsiRunAs",
-                Name = "Install / Run as Administrator (.msi)",
+                Name = "Install as Administrator (.msi)",
                 Description = "Launches Windows Installer package (.msi) with elevated administrative privileges",
                 Category = PresetCategory.File,
                 ExtensionGroup = "Windows Installer (.msi)",
@@ -372,6 +510,161 @@ namespace ContextMenuManager.Methods
             eMsiCmd.Add("@", "\"%SystemRoot%\\System32\\msiexec.exe\" /i \"%1\" %*", RegistryValueKind.ExpandString);
             msi.Entries.Add(eMsiCmd);
             Presets.Add(msi);
+
+            var msiExtract = new CustomPreset
+            {
+                Id = "MsiExtract",
+                Name = "Extract MSI Package",
+                Description = "Extracts all files inside .msi installer into a folder named '[File] Contents'",
+                Category = PresetCategory.File,
+                ExtensionGroup = "Windows Installer (.msi)",
+                IconLocation = "shell32.dll,-16817",
+                RootKeyPath = @"Msi.Package\shell\Extract"
+            };
+            var eMsiExtCmd = new RegistryKeyEntry("command");
+            eMsiExtCmd.Add("@", "msiexec.exe /a \"%1\" /qb TARGETDIR=\"%1 Contents\"");
+            msiExtract.Entries.Add(eMsiExtCmd);
+            Presets.Add(msiExtract);
+
+            // === DLL & OCX REGISTRATION ===
+            var dllReg = new CustomPreset
+            {
+                Id = "DllRegister",
+                Name = "Register Server (regsvr32)",
+                Description = "Registers DLL or OCX COM components into the system registry",
+                Category = PresetCategory.File,
+                ExtensionGroup = "DLL & OCX Libraries (.dll, .ocx)",
+                IconLocation = "shell32.dll,-154",
+                RootKeyPath = @"dllfile\shell\Register"
+            };
+            var eDllR = new RegistryKeyEntry("Command");
+            eDllR.Add("@", "regsvr32.exe \"%1\"");
+            dllReg.Entries.Add(eDllR);
+            Presets.Add(dllReg);
+
+            var dllUnreg = new CustomPreset
+            {
+                Id = "DllUnregister",
+                Name = "Unregister Server (regsvr32 /u)",
+                Description = "Unregisters DLL or OCX COM components from the system registry",
+                Category = PresetCategory.File,
+                ExtensionGroup = "DLL & OCX Libraries (.dll, .ocx)",
+                IconLocation = "shell32.dll,-132",
+                RootKeyPath = @"dllfile\shell\Unregister"
+            };
+            var eDllU = new RegistryKeyEntry("Command");
+            eDllU.Add("@", "regsvr32.exe /u \"%1\"");
+            dllUnreg.Entries.Add(eDllU);
+            Presets.Add(dllUnreg);
+        }
+
+        private static void InitFolderPresets()
+        {
+            var folderMgmtParent = new CustomPresetParent
+            {
+                KeyPath = @"Directory\shell\FolderManagement",
+                Title = "Folder Management",
+                Description = "Cascaded folder utilities for quick cleanup, ownership, and deletion",
+                IconLocation = "explorer.exe,0",
+                Values =
+                {
+                    new RegistryValueItem("Icon", "explorer.exe,0"),
+                    new RegistryValueItem("MUIVerb", "Folder Management"),
+                    new RegistryValueItem("Position", "Middle"),
+                    new RegistryValueItem("SubCommands", "")
+                }
+            };
+
+            var emptyFolder = new CustomPreset
+            {
+                Id = "FolderEmptyContents",
+                Name = "Empty folder contents",
+                Description = "Delete all files in the current folder while preserving subfolders",
+                Category = PresetCategory.Folder,
+                ExtensionGroup = "Folder Utilities",
+                SubMenuGroup = "Folder Management",
+                IconLocation = "shell32.dll,-16715",
+                ParentMenu = folderMgmtParent,
+                RootKeyPath = @"Directory\shell\FolderManagement\shell\EmptyFolder"
+            };
+            var eEmp = new RegistryKeyEntry("");
+            eEmp.Add("Icon", "shell32.dll,-16715");
+            eEmp.Add("MUIVerb", "Empty folder");
+            eEmp.Add("Position", "Top");
+            emptyFolder.Entries.Add(eEmp);
+            var eEmpCmd = new RegistryKeyEntry("command");
+            eEmpCmd.Add("@", "cmd /c title Empty \"%1\" & (cmd /c echo. & echo This will permanently delete all contents in only this folder and not subfolders. & echo. & choice /c:yn /m \"Are you sure?\") & (if errorlevel 2 exit) & (cmd /c \"cd /d %1 && del /f /q *.*\")");
+            emptyFolder.Entries.Add(eEmpCmd);
+            Presets.Add(emptyFolder);
+
+            var folderTakeOwn = new CustomPreset
+            {
+                Id = "FolderTakeOwnership",
+                Name = "Take Ownership (Recursive)",
+                Description = "Take full ownership and grant permissions to Administrators recursively",
+                Category = PresetCategory.Folder,
+                ExtensionGroup = "Folder Utilities",
+                SubMenuGroup = "Folder Management",
+                IconLocation = "imageres.dll,-5324",
+                ParentMenu = folderMgmtParent,
+                RootKeyPath = @"Directory\shell\FolderManagement\shell\TakeOwnership"
+            };
+            var eFOwn = new RegistryKeyEntry("");
+            eFOwn.Add("@", "Take Ownership");
+            eFOwn.Add("AppliesTo", "NOT (System.ItemPathDisplay:=\"C:\\Users\" OR System.ItemPathDisplay:=\"C:\\ProgramData\" OR System.ItemPathDisplay:=\"C:\\Windows\" OR System.ItemPathDisplay:=\"C:\\Windows\\System32\" OR System.ItemPathDisplay:=\"C:\\Program Files\" OR System.ItemPathDisplay:=\"C:\\Program Files (x86)\")");
+            eFOwn.Add("HasLUAShield", "");
+            eFOwn.Add("NoWorkingDirectory", "");
+            eFOwn.Add("Position", "middle");
+            folderTakeOwn.Entries.Add(eFOwn);
+            var eFOwnCmd = new RegistryKeyEntry("command");
+            eFOwnCmd.Add("@", "powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/c takeown /f \\\"%1\\\" /r /d y && icacls \\\"%1\\\" /grant *S-1-3-4:F /t /c /l /q' -Verb runAs\"");
+            folderTakeOwn.Entries.Add(eFOwnCmd);
+            Presets.Add(folderTakeOwn);
+
+            var folderPermDel = new CustomPreset
+            {
+                Id = "FolderPermanentDelete",
+                Name = "Permanent Delete",
+                Description = "Permanently removes folder bypassing the Recycle Bin",
+                Category = PresetCategory.Folder,
+                ExtensionGroup = "Folder Utilities",
+                SubMenuGroup = "Folder Management",
+                IconLocation = "shell32.dll,-240",
+                ParentMenu = folderMgmtParent,
+                RootKeyPath = @"Directory\shell\FolderManagement\shell\Windows.PermanentDelete"
+            };
+            var eFDel = new RegistryKeyEntry("");
+            eFDel.Add("CommandStateSync", "");
+            eFDel.Add("ExplorerCommandHandler", "{E9571AB2-AD92-4ec6-8924-4E5AD33790F5}");
+            eFDel.Add("Icon", "shell32.dll,-240");
+            eFDel.Add("Position", "Bottom");
+            folderPermDel.Entries.Add(eFDel);
+            Presets.Add(folderPermDel);
+        }
+
+        private static void InitDrivePresets()
+        {
+            var driveTakeOwn = new CustomPreset
+            {
+                Id = "DriveTakeOwnership",
+                Name = "Take Ownership (Drive)",
+                Description = "Take full administrative control and repair permissions across entire drive",
+                Category = PresetCategory.Drive,
+                ExtensionGroup = "Drive Utilities",
+                IconLocation = "shell32.dll,-9",
+                RootKeyPath = @"Drive\shell\runas"
+            };
+            var eDrv = new RegistryKeyEntry("");
+            eDrv.Add("@", "Take Ownership");
+            eDrv.Add("HasLUAShield", "");
+            eDrv.Add("NoWorkingDirectory", "");
+            eDrv.Add("Position", "middle");
+            eDrv.Add("AppliesTo", "NOT (System.ItemPathDisplay:=\"C:\\\")");
+            driveTakeOwn.Entries.Add(eDrv);
+            var eDrvCmd = new RegistryKeyEntry("command");
+            eDrvCmd.Add("@", "cmd.exe /c takeown /f \"%1\\\" /r /d y && icacls \"%1\\\" /grant *S-1-3-4:F /t /c");
+            driveTakeOwn.Entries.Add(eDrvCmd);
+            Presets.Add(driveTakeOwn);
         }
 
         private static void InitDesktopPresets()
@@ -396,6 +689,26 @@ namespace ContextMenuManager.Methods
             kill.Entries.Add(eKillCmd);
             Presets.Add(kill);
 
+            var devPrinters = new CustomPreset
+            {
+                Id = "DesktopDevicesPrinters",
+                Name = "Devices and Printers",
+                Description = "Open legacy Control Panel Devices and Printers shortcut directly from desktop context menu",
+                Category = PresetCategory.Desktop,
+                ExtensionGroup = "Desktop Background",
+                IconLocation = "%systemroot%\\system32\\DeviceCenter.dll,-1",
+                RootKeyPath = @"DesktopBackground\Shell\DevicesAndPrinters"
+            };
+            var eDev = new RegistryKeyEntry("");
+            eDev.Add("MUIVerb", "Devices and Printers");
+            eDev.Add("Icon", "%systemroot%\\system32\\DeviceCenter.dll,-1");
+            devPrinters.Entries.Add(eDev);
+            var eDevCmd = new RegistryKeyEntry("Command");
+            eDevCmd.Add("@", "explorer.exe shell:::{A8A91A66-3A7D-4424-8D24-04E180695C7A}");
+            devPrinters.Entries.Add(eDevCmd);
+            Presets.Add(devPrinters);
+
+            // === REFRESH/CONFIG SYSTEM COMPONENTS ===
             var sysParent = new CustomPresetParent
             {
                 KeyPath = @"DesktopBackground\shell\RestartA",
@@ -415,7 +728,7 @@ namespace ContextMenuManager.Methods
             {
                 Id = "DeskFw",
                 Name = "Firewall Options",
-                Description = "Desktop submenu with shortcuts to turn on/off, reset, or open advanced Firewall settings",
+                Description = "Shortcuts to turn on/off, reset, or configure allowed apps in Windows Firewall",
                 Category = PresetCategory.Desktop,
                 ExtensionGroup = "Desktop Background",
                 SubMenuGroup = "Refresh/Config System Components",
@@ -429,7 +742,6 @@ namespace ContextMenuManager.Methods
             eFwR.Add("SubCommands", "");
             eFwR.Add("Position", "Bottom");
             fwOpt.Entries.Add(eFwR);
-
             var eF1 = new RegistryKeyEntry(@"shell\Command001");
             eF1.Add("MUIVerb", "Windows Firewall");
             eF1.Add("Icon", "FirewallControlPanel.dll,-1");
@@ -437,7 +749,6 @@ namespace ContextMenuManager.Methods
             var eF1C = new RegistryKeyEntry(@"shell\Command001\Command");
             eF1C.Add("@", "RunDll32.exe shell32.dll,Control_RunDLL firewall.cpl");
             fwOpt.Entries.Add(eF1C);
-
             var eF2 = new RegistryKeyEntry(@"shell\Command002");
             eF2.Add("MUIVerb", "Windows Firewall with Advanced Security");
             eF2.Add("HasLUAShield", "");
@@ -445,7 +756,6 @@ namespace ContextMenuManager.Methods
             var eF2C = new RegistryKeyEntry(@"shell\Command002\Command");
             eF2C.Add("@", "mmc.exe /s wf.msc");
             fwOpt.Entries.Add(eF2C);
-
             var eF3 = new RegistryKeyEntry(@"shell\Command003");
             eF3.Add("MUIVerb", "Configure Allowed Apps");
             eF3.Add("Icon", "FirewallControlPanel.dll,-1");
@@ -453,7 +763,6 @@ namespace ContextMenuManager.Methods
             var eF3C = new RegistryKeyEntry(@"shell\Command003\Command");
             eF3C.Add("@", @"explorer.exe shell:::{4026492F-2F69-46B8-B9BF-5654FC07E423} -Microsoft.WindowsFirewall\pageConfigureApps");
             fwOpt.Entries.Add(eF3C);
-
             var eF4 = new RegistryKeyEntry(@"shell\Command004");
             eF4.Add("MUIVerb", "Turn On Windows Firewall");
             eF4.Add("HasLUAShield", "");
@@ -462,7 +771,6 @@ namespace ContextMenuManager.Methods
             var eF4C = new RegistryKeyEntry(@"shell\Command004\Command");
             eF4C.Add("@", "powershell.exe -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/s,/c,netsh advfirewall set allprofiles state on' -Verb runAs\"");
             fwOpt.Entries.Add(eF4C);
-
             var eF5 = new RegistryKeyEntry(@"shell\Command005");
             eF5.Add("MUIVerb", "Turn Off Windows Firewall");
             eF5.Add("HasLUAShield", "");
@@ -470,7 +778,6 @@ namespace ContextMenuManager.Methods
             var eF5C = new RegistryKeyEntry(@"shell\Command005\Command");
             eF5C.Add("@", "powershell.exe -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/s,/c,netsh advfirewall set allprofiles state off' -Verb runAs\"");
             fwOpt.Entries.Add(eF5C);
-
             var eF6 = new RegistryKeyEntry(@"shell\Command006");
             eF6.Add("MUIVerb", "Reset Windows Firewall");
             eF6.Add("HasLUAShield", "");
@@ -484,7 +791,7 @@ namespace ContextMenuManager.Methods
             {
                 Id = "DeskHvci",
                 Name = "HVCI Security (Core Isolation)",
-                Description = "Enables or disables Hypervisor-Protected Code Integrity (Device Guard) with reboot",
+                Description = "Enable or disable Hypervisor-Protected Code Integrity with system reboot",
                 Category = PresetCategory.Desktop,
                 ExtensionGroup = "Desktop Background",
                 SubMenuGroup = "Refresh/Config System Components",
@@ -498,7 +805,6 @@ namespace ContextMenuManager.Methods
             eHvci.Add("SubCommands", "");
             eHvci.Add("Position", "Bottom");
             hvci.Entries.Add(eHvci);
-
             var eH1 = new RegistryKeyEntry(@"shell\01EnableHVCI");
             eH1.Add("MUIVerb", "Enable HVCI & Restart");
             eH1.Add("Icon", "imageres.dll,-1404");
@@ -506,7 +812,6 @@ namespace ContextMenuManager.Methods
             var eH1C = new RegistryKeyEntry(@"shell\01EnableHVCI\command");
             eH1C.Add("@", "powershell -WindowStyle Hidden -Command \"Start-Process cmd -ArgumentList '/c reg add \\\"HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity\\\" /v \\\"Enabled\\\" /t REG_DWORD /d 1 /f & shutdown /r /t 0' -Verb RunAs\"");
             hvci.Entries.Add(eH1C);
-
             var eH2 = new RegistryKeyEntry(@"shell\02DisableHVCI");
             eH2.Add("MUIVerb", "Disable HVCI & Restart");
             eH2.Add("Icon", "imageres.dll,-1403");
@@ -520,7 +825,7 @@ namespace ContextMenuManager.Methods
             {
                 Id = "DeskNetProfile",
                 Name = "Network Profile (Public/Private)",
-                Description = "Submenu to set current active network adapter profile to Private (trusted) or Public (restricted)",
+                Description = "Switch active network connection profile between Private (trusted) and Public",
                 Category = PresetCategory.Desktop,
                 ExtensionGroup = "Desktop Background",
                 SubMenuGroup = "Refresh/Config System Components",
@@ -534,7 +839,6 @@ namespace ContextMenuManager.Methods
             eNet.Add("SubCommands", "");
             eNet.Add("Position", "Bottom");
             netP.Entries.Add(eNet);
-
             var eN1 = new RegistryKeyEntry(@"shell\01SetPrivate");
             eN1.Add("MUIVerb", "Private");
             eN1.Add("Icon", "imageres.dll,-5373");
@@ -542,7 +846,6 @@ namespace ContextMenuManager.Methods
             var eN1C = new RegistryKeyEntry(@"shell\01SetPrivate\command");
             eN1C.Add("@", "powershell -WindowStyle Hidden -Command \"Start-Process powershell -ArgumentList '-NoProfile -Command Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private' -Verb RunAs\"");
             netP.Entries.Add(eN1C);
-
             var eN2 = new RegistryKeyEntry(@"shell\02SetPublic");
             eN2.Add("MUIVerb", "Public");
             eN2.Add("Icon", "imageres.dll,-5302");
@@ -556,13 +859,13 @@ namespace ContextMenuManager.Methods
             {
                 Id = "DeskExplorerRestarter",
                 Name = "Restart/Pause File Explorer",
-                Description = "Desktop command to instantly restart or pause the Windows Explorer process",
+                Description = "Instantly restart or pause the Windows Explorer shell process",
                 Category = PresetCategory.Desktop,
                 ExtensionGroup = "Desktop Background",
                 SubMenuGroup = "Refresh/Config System Components",
                 IconLocation = "explorer.exe",
                 ParentMenu = sysParent,
-                RootKeyPath = @"DesktopBackground\shell\QuickAccess"
+                RootKeyPath = @"DesktopBackground\shell\RestartA\shell\QuickAccess"
             };
             var eQa = new RegistryKeyEntry("");
             eQa.Add("icon", "explorer.exe");
@@ -570,7 +873,6 @@ namespace ContextMenuManager.Methods
             eQa.Add("SubCommands", "");
             eQa.Add("MUIVerb", "Restart/Pause File Explorer");
             qa.Entries.Add(eQa);
-
             var eQ1 = new RegistryKeyEntry(@"shell\01menu");
             eQ1.Add("MUIVerb", "Restart File Explorer");
             eQ1.Add("icon", "explorer.exe,1");
@@ -578,14 +880,13 @@ namespace ContextMenuManager.Methods
             var eQ1Cmd = new RegistryKeyEntry(@"shell\01menu\command");
             eQ1Cmd.Add("@", "cmd.exe /c taskkill /f /im explorer.exe & start explorer.exe");
             qa.Entries.Add(eQ1Cmd);
-
             var eQ2 = new RegistryKeyEntry(@"shell\02menu");
             eQ2.Add("MUIVerb", "Pause File Explorer");
             eQ2.Add("icon", "explorer.exe,5");
             eQ2.Add("CommandFlags", 32, RegistryValueKind.DWord);
             qa.Entries.Add(eQ2);
             var eQ2Cmd = new RegistryKeyEntry(@"shell\02menu\command");
-            eQ2Cmd.Add("@", "cmd.exe /c taskkill /f /im explorer.exe & echo Explorer oprit. Apasa orice tasta... & pause & start explorer.exe & exit");
+            eQ2Cmd.Add("@", "cmd.exe /c taskkill /f /im explorer.exe & echo Explorer paused. Press any key... & pause & start explorer.exe & exit");
             qa.Entries.Add(eQ2Cmd);
             Presets.Add(qa);
 
@@ -593,7 +894,7 @@ namespace ContextMenuManager.Methods
             {
                 Id = "DeskHomeQAView",
                 Name = "Home / Quick Access View",
-                Description = "Desktop submenu to show or hide the Home / Quick Access node in Explorer sidebar",
+                Description = "Show or hide the Home / Quick Access hub in File Explorer sidebar",
                 Category = PresetCategory.Desktop,
                 ExtensionGroup = "Desktop Background",
                 SubMenuGroup = "Refresh/Config System Components",
@@ -607,7 +908,6 @@ namespace ContextMenuManager.Methods
             eQv.Add("Position", "Bottom");
             eQv.Add("SubCommands", "");
             qaView.Entries.Add(eQv);
-
             var eQv1 = new RegistryKeyEntry(@"shell\01HideQA");
             eQv1.Add("MUIVerb", "Hide Home (Cleaner View)");
             eQv1.Add("Icon", "imageres.dll,-5302");
@@ -615,7 +915,6 @@ namespace ContextMenuManager.Methods
             var eQv1C = new RegistryKeyEntry(@"shell\01HideQA\command");
             eQv1C.Add("@", "powershell -WindowStyle Hidden -Command \"New-Item -Path 'HKCU:\\Software\\Classes\\CLSID\\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}' -Force -ErrorAction SilentlyContinue; Set-ItemProperty -Path 'HKCU:\\Software\\Classes\\CLSID\\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}' -Name 'System.IsPinnedToNameSpaceTree' -Value 0; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -Name 'LaunchTo' -Value 1; Stop-Process -Name explorer\"");
             qaView.Entries.Add(eQv1C);
-
             var eQv2 = new RegistryKeyEntry(@"shell\02ShowQA");
             eQv2.Add("MUIVerb", "Show Home (Default)");
             eQv2.Add("Icon", "imageres.dll,-5373");
@@ -624,6 +923,126 @@ namespace ContextMenuManager.Methods
             eQv2C.Add("@", "powershell -WindowStyle Hidden -Command \"Remove-Item -Path 'HKCU:\\Software\\Classes\\CLSID\\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}' -Recurse -ErrorAction SilentlyContinue; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -Name 'LaunchTo' -Value 2; Stop-Process -Name explorer\"");
             qaView.Entries.Add(eQv2C);
             Presets.Add(qaView);
+
+            // === DEVICE SHUTDOWN MENU ===
+            var shutdownParent = new CustomPresetParent
+            {
+                KeyPath = @"DesktopBackground\Shell\RestartB",
+                Title = "Device Shutdown",
+                Description = "Cascaded menu for quick shutdown, reboot, UEFI/BIOS restart, safe mode, and display sleep",
+                IconLocation = "shell32.dll,-16739",
+                Values =
+                {
+                    new RegistryValueItem("MUIVerb", "Device Shutdown"),
+                    new RegistryValueItem("Icon", "shell32.dll,-16739"),
+                    new RegistryValueItem("Position", "Bottom"),
+                    new RegistryValueItem("SubCommands", "")
+                }
+            };
+
+            var powerOps = new CustomPreset
+            {
+                Id = "DesktopPowerOps",
+                Name = "Power & Reboot Options",
+                Description = "Shut down, restart PC, or restart into Advanced Startup / UEFI BIOS",
+                Category = PresetCategory.Desktop,
+                ExtensionGroup = "Desktop Background",
+                SubMenuGroup = "Device Shutdown",
+                IconLocation = "shell32.dll,-16739",
+                ParentMenu = shutdownParent,
+                RootKeyPath = @"DesktopBackground\Shell\RestartB\shell\001flyout"
+            };
+            var ePw1 = new RegistryKeyEntry("");
+            ePw1.Add("MUIVerb", "Shut Down PC");
+            powerOps.Entries.Add(ePw1);
+            var ePw1C = new RegistryKeyEntry("command");
+            ePw1C.Add("@", "shutdown /s /f /t 0");
+            powerOps.Entries.Add(ePw1C);
+            var ePw2 = new RegistryKeyEntry(@"..\002flyout");
+            ePw2.Add("MUIVerb", "Restart PC");
+            ePw2.Add("CommandFlags", 32, RegistryValueKind.DWord);
+            powerOps.Entries.Add(ePw2);
+            var ePw2C = new RegistryKeyEntry(@"..\002flyout\command");
+            ePw2C.Add("@", "shutdown /r /t 0");
+            powerOps.Entries.Add(ePw2C);
+            var ePw4 = new RegistryKeyEntry(@"..\004flyout");
+            ePw4.Add("MUIVerb", "Restart to Advanced Startup Options");
+            ePw4.Add("HasLUAShield", "");
+            powerOps.Entries.Add(ePw4);
+            var ePw4C = new RegistryKeyEntry(@"..\004flyout\command");
+            ePw4C.Add("@", "shutdown /r /o /f /t 0");
+            powerOps.Entries.Add(ePw4C);
+            var ePw5 = new RegistryKeyEntry(@"..\005flyout");
+            ePw5.Add("MUIVerb", "Restart to UEFI/BIOS");
+            ePw5.Add("HasLUAShield", "");
+            powerOps.Entries.Add(ePw5);
+            var ePw5C = new RegistryKeyEntry(@"..\005flyout\command");
+            ePw5C.Add("@", "shutdown /r /fw /f /t 0");
+            powerOps.Entries.Add(ePw5C);
+            Presets.Add(powerOps);
+
+            var safeModes = new CustomPreset
+            {
+                Id = "DesktopSafeModes",
+                Name = "Safe Mode Restart Options",
+                Description = "Configures BCD and restarts system in Safe Mode (Minimal, Networking, or Command Prompt)",
+                Category = PresetCategory.Desktop,
+                ExtensionGroup = "Desktop Background",
+                SubMenuGroup = "Device Shutdown",
+                IconLocation = "imageres.dll,-5324",
+                ParentMenu = shutdownParent,
+                RootKeyPath = @"DesktopBackground\Shell\RestartB\shell\006-SafeMode"
+            };
+            var eSm1 = new RegistryKeyEntry("");
+            eSm1.Add("@", "Restart in Safe Mode");
+            eSm1.Add("HasLUAShield", "");
+            safeModes.Entries.Add(eSm1);
+            var eSm1C = new RegistryKeyEntry("command");
+            eSm1C.Add("@", "powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/s,/c,bcdedit /set {current} safeboot minimal & bcdedit /deletevalue {current} safebootalternateshell & shutdown -r -t 00 -f' -Verb runAs\"");
+            safeModes.Entries.Add(eSm1C);
+            var eSmNorm = new RegistryKeyEntry(@"..\006-NormalMode");
+            eSmNorm.Add("@", "Restart to normal mode (Exit to Safe Mode)");
+            eSmNorm.Add("HasLUAShield", "");
+            safeModes.Entries.Add(eSmNorm);
+            var eSmNormC = new RegistryKeyEntry(@"..\006-NormalMode\command");
+            eSmNormC.Add("@", "powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/s,/c,bcdedit /deletevalue {current} safeboot & bcdedit /deletevalue {current} safebootalternateshell & shutdown -r -t 00 -f' -Verb runAs\"");
+            safeModes.Entries.Add(eSmNormC);
+            Presets.Add(safeModes);
+
+            var displayOff = new CustomPreset
+            {
+                Id = "DesktopTurnOffDisplay",
+                Name = "Turn Off Display",
+                Description = "Instantly sends standby power command to turn off connected monitors or lock workstation",
+                Category = PresetCategory.Desktop,
+                ExtensionGroup = "Desktop Background",
+                SubMenuGroup = "Device Shutdown",
+                IconLocation = "imageres.dll,-109",
+                ParentMenu = shutdownParent,
+                RootKeyPath = @"DesktopBackground\Shell\RestartB\shell\007-TurnOffDisplay"
+            };
+            var eDsp = new RegistryKeyEntry("");
+            eDsp.Add("Icon", "imageres.dll,-109");
+            eDsp.Add("MUIVerb", "Turn off display");
+            eDsp.Add("Position", "Bottom");
+            eDsp.Add("SubCommands", "");
+            displayOff.Entries.Add(eDsp);
+            var eDsp1 = new RegistryKeyEntry(@"shell\01menu");
+            eDsp1.Add("Icon", "powercpl.dll,-513");
+            eDsp1.Add("MUIVerb", "Turn off display");
+            displayOff.Entries.Add(eDsp1);
+            var eDsp1C = new RegistryKeyEntry(@"shell\01menu\command");
+            eDsp1C.Add("@", "cmd /c \"powershell.exe -Command \"(Add-Type '[DllImport(\\\"user32.dll\\\")]public static extern int SendMessage(int hWnd,int hMsg,int wParam,int lParam);' -Name a -Pas)::SendMessage(-1,0x0112,0xF170,2)\"\"");
+            displayOff.Entries.Add(eDsp1C);
+            var eDsp2 = new RegistryKeyEntry(@"shell\02menu");
+            eDsp2.Add("MUIVerb", "Lock computer and Turn off display");
+            eDsp2.Add("CommandFlags", 32, RegistryValueKind.DWord);
+            eDsp2.Add("Icon", "imageres.dll,-59");
+            displayOff.Entries.Add(eDsp2);
+            var eDsp2C = new RegistryKeyEntry(@"shell\02menu\command");
+            eDsp2C.Add("@", "cmd /c \"powershell.exe -Command \"(Add-Type '[DllImport(\\\"user32.dll\\\")]public static extern int SendMessage(int hWnd,int hMsg,int wParam,int lParam);' -Name a -Pas)::SendMessage(-1,0x0112,0xF170,2)\" & rundll32.exe user32.dll, LockWorkStation\"");
+            displayOff.Entries.Add(eDsp2C);
+            Presets.Add(displayOff);
         }
 
         public static List<CustomPreset> GetPresetsByCategory(PresetCategory category)
