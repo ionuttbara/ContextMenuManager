@@ -25,6 +25,7 @@ namespace ContextMenuManager.Methods
                     pi.SetValue(type, GetValue(type.Name, pi.Name), null);
                 }
             }
+            UiLanguage.ApplySystemLanguage();
         }
 
         /// <summary>常规</summary>
@@ -77,6 +78,7 @@ namespace ContextMenuManager.Methods
             public static string IEMenu { get; set; }
             public static string AppSetting { get; set; }
             public static string AppLanguage { get; set; }
+            public static string AboutApp { get; set; }
         }
 
         /// <summary>状态栏</summary>

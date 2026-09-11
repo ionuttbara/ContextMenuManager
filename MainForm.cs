@@ -6,7 +6,6 @@ using ContextMenuManager.Methods;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -42,10 +41,10 @@ namespace ContextMenuManager
 
         readonly MyToolBarButton[] ToolBarButtons =
         {
-            new MyToolBarButton(AppImage.ToolbarHome, "Current items"),
+            new MyToolBarButton(AppImage.ToolbarHome, UiLanguage.Text("CurrentItems")),
             new MyToolBarButton(AppImage.ToolbarType, AppString.ToolBar.Type),
-            new MyToolBarButton(AppImage.ToolbarCustom, "Add Custom Items"),
-            new MyToolBarButton(AppImage.ToolbarRemove, "Remove Default Menus"),
+            new MyToolBarButton(AppImage.ToolbarCustom, UiLanguage.Text("AddCustomItems")),
+            new MyToolBarButton(AppImage.ToolbarRemove, UiLanguage.Text("RemoveDefaultMenus")),
             new MyToolBarButton(AppImage.ToolbarAbout, AppString.ToolBar.About)
         };
 
@@ -89,8 +88,8 @@ namespace ContextMenuManager
             AppString.SideBar.Computer,
             AppString.SideBar.RecycleBin,
             AppString.SideBar.Library,
-            "Microsoft Store Apps",
-            "Terminal",
+            UiLanguage.Text("MicrosoftStoreApps"),
+            UiLanguage.Text("Terminal"),
             null,
             AppString.SideBar.New,
             AppString.SideBar.SendTo,
@@ -111,8 +110,8 @@ namespace ContextMenuManager
             AppString.StatusBar.Computer,
             AppString.StatusBar.RecycleBin,
             AppString.StatusBar.Library,
-            "UWP apps that add Windows 11 context menus",
-            "Configure 'Open terminal in place...' menu and Windows Terminal profiles",
+            UiLanguage.Text("StoreAppsInfo"),
+            UiLanguage.Text("TerminalInfo"),
             null,
             AppString.StatusBar.New,
             AppString.StatusBar.SendTo,
@@ -198,45 +197,37 @@ namespace ContextMenuManager
         // Tab 3: Remove Default Menus
         static readonly string[] DefaultRemovalSideBarItems =
         {
-            "All Items",
+            UiLanguage.Text("AllItems"),
             AppString.SideBar.File,
             AppString.SideBar.Folder,
             AppString.SideBar.Desktop,
             AppString.SideBar.Drive,
-            "Media",
-            "System"
+            UiLanguage.Text("Media"),
+            UiLanguage.Text("System")
         };
 
         static readonly string[] DefaultRemovalSideBarItemInfos =
         {
-            "Toate opțiunile de eliminare meniuri implicite",
-            "Meniuri implicite de pe fișiere",
-            "Meniuri implicite de pe foldere",
-            "Meniuri implicite de pe desktop",
-            "Meniuri implicite de pe partiții și drive-uri",
-            "Meniuri multimedia, fotografii și video",
-            "Meniuri implicite de sistem și securitate"
+            UiLanguage.Text("InfoAllRemoval"),
+            UiLanguage.Text("InfoFileRemoval"),
+            UiLanguage.Text("InfoFolderRemoval"),
+            UiLanguage.Text("InfoDesktopRemoval"),
+            UiLanguage.Text("InfoDriveRemoval"),
+            UiLanguage.Text("InfoMediaRemoval"),
+            UiLanguage.Text("InfoSystemRemoval")
         };
 
         // Tab 4: About
         static readonly string[] AboutItems =
         {
-            AppString.SideBar.AppSetting
-          //  AppString.SideBar.AboutApp
+            AppString.SideBar.AppSetting,
+            AppString.SideBar.AboutApp
         };
 
         static readonly string[] AboutItemInfos =
         {
-        };
-
-        static readonly string[] SettingItems =
-        {
-            AppString.Other.TopMost,
-            null,
-            AppString.Other.ShowFilePath,
-            AppString.Other.HideDisabledItems,
-            null,
-            AppString.Other.OpenMoreRegedit
+            AppString.SideBar.AppSetting,
+            AppString.SideBar.AboutApp
         };
 
         readonly int[] lastItemIndex = new int[5];
@@ -487,26 +478,26 @@ namespace ContextMenuManager
 
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
             aboutMeBox.SelectionColor = ThemeManager.IsDarkMode() ? Color.White : Color.Black;
-            aboutMeBox.AppendText("About this Project:\n");
+            aboutMeBox.AppendText(UiLanguage.Text("AboutProject") + ":\n");
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
             aboutMeBox.AppendText("This software is an enhanced fork of the original open-source ContextMenuManager application by BluePointLilac.\n");
             aboutMeBox.AppendText("Maintained, redesigned and modernized by Ionut Bara.\n\n");
 
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
-            aboutMeBox.AppendText("Repository & Documentation:\n");
+            aboutMeBox.AppendText(UiLanguage.Text("Repository") + ":\n");
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
             aboutMeBox.AppendText("https://github.com/ionuttbara/ContextMenuManager\n\n");
 
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
-            aboutMeBox.AppendText("Technical Details:\n");
+            aboutMeBox.AppendText(UiLanguage.Text("TechnicalDetails") + ":\n");
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
-            aboutMeBox.AppendText("• Version: 3.3.4.1\n");
+            aboutMeBox.AppendText("• Version: 3.3.4.2\n");
             aboutMeBox.AppendText("• Platform: Microsoft .NET Framework 4.8\n");
             aboutMeBox.AppendText("• Architecture: AnyCPU (Native 64-bit / ARM64 / 32-bit execution)\n");
             aboutMeBox.AppendText("• DPI Awareness: Per-Monitor V2 High-DPI auto-rescaling enabled\n\n");
 
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
-            aboutMeBox.AppendText("Key Features in this Community Fork:\n");
+            aboutMeBox.AppendText(UiLanguage.Text("KeyFeatures") + ":\n");
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
             aboutMeBox.AppendText("1. Windows Terminal Integration: Dynamic profile discovery from settings.json across all editions (Stable, Preview, Canary, Dev, Unpackaged) with JSON Profile Backup & Restore and native CMD / PowerShell 5 fallback.\n");
             aboutMeBox.AppendText("2. Add Custom Items: Deep system presets including Dedicated vs. Integrated GPU preferences, real-time CPU priority, Windows Firewall access rules, NT SERVICE\\TrustedInstaller privileges, Take Ownership, and recursive file tools.\n");
@@ -532,7 +523,7 @@ namespace ContextMenuManager
                 { ToolBarButtons[1], TypeItems },
                 { ToolBarButtons[2], CustomRuleItems },
                 { ToolBarButtons[3], DefaultRemovalSideBarItems },
-                { ToolBarButtons[4], SettingItems }
+                { ToolBarButtons[4], AboutItems }
             };
 
             foreach (var item in dic)

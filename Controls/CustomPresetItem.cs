@@ -107,14 +107,14 @@ namespace ContextMenuManager.Controls
                 cms.BackColor = Color.FromArgb(43, 43, 43);
             }
 
-            ToolStripMenuItem itemAdd = new ToolStripMenuItem("Add to registry");
+            ToolStripMenuItem itemAdd = new ToolStripMenuItem(UiLanguage.Text("AddToRegistry"));
             itemAdd.Image = Properties.Resources.Add;
             itemAdd.Click += (s, e) =>
             {
                 this.ItemVisible = true;
             };
 
-            ToolStripMenuItem itemRemove = new ToolStripMenuItem("Remove from registry");
+            ToolStripMenuItem itemRemove = new ToolStripMenuItem(UiLanguage.Text("RemoveFromRegistry"));
             itemRemove.Image = Properties.Resources.Delete;
             itemRemove.Click += (s, e) =>
             {
@@ -127,7 +127,7 @@ namespace ContextMenuManager.Controls
             cms.Opening += (s, e) =>
             {
                 bool active = this.ItemVisible;
-                itemAdd.Text = active ? "Re-add to registry" : "Add to registry";
+                itemAdd.Text = active ? UiLanguage.Text("ReAddToRegistry") : UiLanguage.Text("AddToRegistry");
                 itemRemove.Enabled = active;
             };
 

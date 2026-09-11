@@ -91,6 +91,26 @@ namespace ContextMenuManager.Methods
         public CustomPresetParent ParentMenu { get; set; }
         public string RootKeyPath { get; set; }
         public List<RegistryKeyEntry> Entries { get; set; } = new List<RegistryKeyEntry>();
+        public List<string> AdditionalDeletePaths { get; } = new List<string>();
+
+        private static string ResolvePath(string rootPath, string subPath)
+        {
+            if (string.IsNullOrWhiteSpace(subPath)) return rootPath;
+
+            var parts = new List<string>(rootPath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries));
+            foreach (string raw in subPath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string part = raw.Trim();
+                if (part == ".") continue;
+                if (part == "..")
+                {
+                    if (parts.Count > 0) parts.RemoveAt(parts.Count - 1);
+                    continue;
+                }
+                parts.Add(part);
+            }
+            return string.Join(@"\", parts);
+        }
 
         public bool IsActive()
         {
@@ -110,9 +130,7 @@ namespace ContextMenuManager.Methods
 
             foreach (var entry in Entries)
             {
-                string fullPath = string.IsNullOrEmpty(entry.SubPath)
-                    ? RootKeyPath
-                    : $@"{RootKeyPath}\{entry.SubPath}";
+                string fullPath = ResolvePath(RootKeyPath, entry.SubPath);
 
                 using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(fullPath, RegistryKeyPermissionCheck.ReadWriteSubTree))
                 {
@@ -133,6 +151,12 @@ namespace ContextMenuManager.Methods
                 Registry.ClassesRoot.DeleteSubKeyTree(RootKeyPath, false);
             }
             catch { }
+
+            foreach (string path in AdditionalDeletePaths)
+            {
+                try { Registry.ClassesRoot.DeleteSubKeyTree(path, false); }
+                catch { }
+            }
 
             if (ParentMenu != null)
             {
@@ -952,6 +976,10 @@ namespace ContextMenuManager.Methods
                 ParentMenu = shutdownParent,
                 RootKeyPath = @"DesktopBackground\Shell\RestartB\shell\001flyout"
             };
+            powerOps.AdditionalDeletePaths.Add(@"DesktopBackground\Shell\RestartB\shell\002flyout");
+            powerOps.AdditionalDeletePaths.Add(@"DesktopBackground\Shell\RestartB\shell\003flyout");
+            powerOps.AdditionalDeletePaths.Add(@"DesktopBackground\Shell\RestartB\shell\004flyout");
+            powerOps.AdditionalDeletePaths.Add(@"DesktopBackground\Shell\RestartB\shell\005flyout");
             var ePw1 = new RegistryKeyEntry("");
             ePw1.Add("MUIVerb", "Shut Down PC");
             powerOps.Entries.Add(ePw1);
@@ -965,6 +993,13 @@ namespace ContextMenuManager.Methods
             var ePw2C = new RegistryKeyEntry(@"..\002flyout\command");
             ePw2C.Add("@", "shutdown /r /t 0");
             powerOps.Entries.Add(ePw2C);
+            var ePw3 = new RegistryKeyEntry(@"..\003flyout");
+            ePw3.Add("MUIVerb", "Restart PC. After reboot, re-open unclosed apps.");
+            ePw3.Add("CommandFlags", 32, RegistryValueKind.DWord);
+            powerOps.Entries.Add(ePw3);
+            var ePw3C = new RegistryKeyEntry(@"..\003flyout\command");
+            ePw3C.Add("@", "shutdown /g /t 0");
+            powerOps.Entries.Add(ePw3C);
             var ePw4 = new RegistryKeyEntry(@"..\004flyout");
             ePw4.Add("MUIVerb", "Restart to Advanced Startup Options");
             ePw4.Add("HasLUAShield", "");
@@ -993,6 +1028,9 @@ namespace ContextMenuManager.Methods
                 ParentMenu = shutdownParent,
                 RootKeyPath = @"DesktopBackground\Shell\RestartB\shell\006-SafeMode"
             };
+            safeModes.AdditionalDeletePaths.Add(@"DesktopBackground\Shell\RestartB\shell\006-NormalMode");
+            safeModes.AdditionalDeletePaths.Add(@"DesktopBackground\Shell\RestartB\shell\006-SafeModeNetworking");
+            safeModes.AdditionalDeletePaths.Add(@"DesktopBackground\Shell\RestartB\shell\006-SafeModeCommandPrompt");
             var eSm1 = new RegistryKeyEntry("");
             eSm1.Add("@", "Restart in Safe Mode");
             eSm1.Add("HasLUAShield", "");
@@ -1007,6 +1045,22 @@ namespace ContextMenuManager.Methods
             var eSmNormC = new RegistryKeyEntry(@"..\006-NormalMode\command");
             eSmNormC.Add("@", "powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/s,/c,bcdedit /deletevalue {current} safeboot & bcdedit /deletevalue {current} safebootalternateshell & shutdown -r -t 00 -f' -Verb runAs\"");
             safeModes.Entries.Add(eSmNormC);
+
+            var eSmNet = new RegistryKeyEntry(@"..\006-SafeModeNetworking");
+            eSmNet.Add("@", "Restart in Safe Mode with Networking");
+            eSmNet.Add("HasLUAShield", "");
+            safeModes.Entries.Add(eSmNet);
+            var eSmNetC = new RegistryKeyEntry(@"..\006-SafeModeNetworking\command");
+            eSmNetC.Add("@", "powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/s,/c,bcdedit /set {current} safeboot network & bcdedit /deletevalue {current} safebootalternateshell & shutdown -r -t 00 -f' -Verb runAs\"");
+            safeModes.Entries.Add(eSmNetC);
+
+            var eSmCmd = new RegistryKeyEntry(@"..\006-SafeModeCommandPrompt");
+            eSmCmd.Add("@", "Restart in Safe Mode with Command Prompt");
+            eSmCmd.Add("HasLUAShield", "");
+            safeModes.Entries.Add(eSmCmd);
+            var eSmCmdC = new RegistryKeyEntry(@"..\006-SafeModeCommandPrompt\command");
+            eSmCmdC.Add("@", "powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/s,/c,bcdedit /set {current} safeboot minimal & bcdedit /set {current} safebootalternateshell yes & shutdown -r -t 00 -f' -Verb runAs\"");
+            safeModes.Entries.Add(eSmCmdC);
             Presets.Add(safeModes);
 
             var displayOff = new CustomPreset

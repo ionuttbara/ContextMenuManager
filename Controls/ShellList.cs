@@ -28,6 +28,8 @@ namespace ContextMenuManager.Controls
         public const string MENUPATH_LIBRARY_BACKGROUND = @"HKEY_CLASSES_ROOT\LibraryFolder\Background";//库背景
         public const string MENUPATH_LIBRARY_USER = @"HKEY_CLASSES_ROOT\UserLibraryFolder";//用户库
         public const string MENUPATH_UWPLNK = @"HKEY_CLASSES_ROOT\Launcher.ImmersiveApplication";//UWP快捷方式
+        public const string MENUPATH_LNKFILE = @"HKEY_CLASSES_ROOT\lnkfile";//Windows shortcut canonical ProgID
+        public const string MENUPATH_EXEFILE = @"HKEY_CLASSES_ROOT\exefile";//Executable canonical ProgID
         public const string MENUPATH_UNKNOWN = @"HKEY_CLASSES_ROOT\Unknown";//未知格式
         public const string SYSFILEASSPATH = @"HKEY_CLASSES_ROOT\SystemFileAssociations";//系统扩展名注册表父项路径
         private const string LASTKEYPATH = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit";//上次打开的注册表项路径记录
@@ -167,13 +169,19 @@ namespace ContextMenuManager.Controls
         private static string GetShellExPath(string scenePath) => $@"{scenePath}\ShellEx";
         private static string GetSysAssExtPath(string typeName) => typeName != null ? $@"{SYSFILEASSPATH}\{typeName}" : null;
         private static string GetOpenMode(string extension) => FileExtension.GetOpenMode(extension);
-        private static string GetOpenModePath(string extension) => extension != null ? $@"{RegistryEx.CLASSES_ROOT}\{GetOpenMode(extension)}" : null;
+        private static string GetOpenModePath(string extension)
+        {
+            if (string.IsNullOrWhiteSpace(extension)) return null;
+            string progId = GetOpenMode(extension);
+            return string.IsNullOrWhiteSpace(progId) ? null : $@"{RegistryEx.CLASSES_ROOT}\{progId}";
+        }
         private static string GetPerceivedType(string extension) => Registry.GetValue($@"{RegistryEx.CLASSES_ROOT}\{extension}", "PerceivedType", null)?.ToString();
 
         public Scenes Scene { get; set; }
 
         public void LoadItems()
         {
+            this.ClearItems();
             string scenePath = null;
             switch(Scene)
             {
@@ -202,18 +210,18 @@ namespace ContextMenuManager.Controls
                     if(WinOsVersion.Current == WinOsVersion.Vista) return;
                     scenePath = MENUPATH_LIBRARY; break;
                 case Scenes.LnkFile:
-                    scenePath = GetOpenModePath(".lnk"); break;
+                    scenePath = MENUPATH_LNKFILE; break;
                 case Scenes.UwpLnk:
                     //Win8之前没有Uwp
                     if(WinOsVersion.Current < WinOsVersion.Win8) return;
                     scenePath = MENUPATH_UWPLNK; break;
                 case Scenes.ExeFile:
-                    scenePath = GetSysAssExtPath(".exe"); break;
+                    scenePath = MENUPATH_EXEFILE; break;
                 case Scenes.UnknownType:
                     scenePath = MENUPATH_UNKNOWN; break;
                 case Scenes.CustomExtension:
                     bool isLnk = CurrentExtension?.ToLower() == ".lnk";
-                    if(isLnk) scenePath = GetOpenModePath(".lnk");
+                    if(isLnk) scenePath = MENUPATH_LNKFILE;
                     else scenePath = GetSysAssExtPath(CurrentExtension);
                     break;
                 case Scenes.PerceivedType:
@@ -263,8 +271,23 @@ namespace ContextMenuManager.Controls
                     this.LoadItems(MENUPATH_LIBRARY_BACKGROUND);
                     this.LoadItems(MENUPATH_LIBRARY_USER);
                     break;
+                case Scenes.LnkFile:
+                    this.LoadItems(GetSysAssExtPath(".lnk"));
+                    string lnkOpenModePath = GetOpenModePath(".lnk");
+                    if (!string.IsNullOrEmpty(lnkOpenModePath) && !lnkOpenModePath.Equals(MENUPATH_LNKFILE, StringComparison.OrdinalIgnoreCase))
+                        this.LoadItems(lnkOpenModePath);
+                    break;
+                case Scenes.UwpLnk:
+                    // Modern Windows may expose UWP shortcuts through common .lnk handlers as well.
+                    // Keep the legacy Launcher.ImmersiveApplication class and aggregate canonical shortcut handlers.
+                    this.LoadItems(MENUPATH_LNKFILE);
+                    this.LoadItems(GetSysAssExtPath(".lnk"));
+                    break;
                 case Scenes.ExeFile:
-                    this.LoadItems(GetOpenModePath(".exe"));
+                    this.LoadItems(GetSysAssExtPath(".exe"));
+                    string exeOpenModePath = GetOpenModePath(".exe");
+                    if (!string.IsNullOrEmpty(exeOpenModePath) && !exeOpenModePath.Equals(MENUPATH_EXEFILE, StringComparison.OrdinalIgnoreCase))
+                        this.LoadItems(exeOpenModePath);
                     break;
                 case Scenes.CustomExtension:
                 case Scenes.PerceivedType:

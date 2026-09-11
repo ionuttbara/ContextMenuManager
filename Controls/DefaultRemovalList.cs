@@ -41,7 +41,7 @@ namespace ContextMenuManager.Controls
             var groups = items.GroupBy(i => i.Category);
             foreach (var group in groups)
             {
-                this.AddItem(new DefaultRemovalGroupItem(group.Key + " Context Menus"));
+                this.AddItem(new DefaultRemovalGroupItem(group.Key + " " + UiLanguage.Text("ContextMenus")));
                 foreach (var def in group)
                     this.AddItem(new DefaultRemovalItem(def, indentLevel: 1));
             }
@@ -51,9 +51,9 @@ namespace ContextMenuManager.Controls
 
         private MyListItem CreateBulkActionItem()
         {
-            MyListItem row = new MyListItem { Text = "Bulk actions", HasImage = false };
-            row.AddCtr(CreateButton("Restore all", AppImage.AddNewItem, () => SetAll(false)));
-            row.AddCtr(CreateButton("Remove all", AppImage.Delete, () => SetAll(true)));
+            MyListItem row = new MyListItem { Text = UiLanguage.Text("BulkActions"), HasImage = false };
+            row.AddCtr(CreateButton(UiLanguage.Text("RestoreAll"), AppImage.AddNewItem, () => SetAll(false)));
+            row.AddCtr(CreateButton(UiLanguage.Text("RemoveAll"), AppImage.Delete, () => SetAll(true)));
             return row;
         }
 

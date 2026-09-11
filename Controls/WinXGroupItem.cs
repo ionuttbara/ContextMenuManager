@@ -68,6 +68,8 @@ namespace ContextMenuManager.Controls
                 {
                     string dstPath = $@"{GroupPath}\{Path.GetFileName(srcPath)}";
                     File.Copy(srcPath, dstPath);
+                    if (string.Equals(Path.GetExtension(dstPath), ".lnk", System.StringComparison.OrdinalIgnoreCase))
+                        WinXHasher.HashLnk(dstPath);
                 }
                 WinXList list = (WinXList)this.Parent;
                 list.ClearItems();

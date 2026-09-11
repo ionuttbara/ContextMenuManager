@@ -160,44 +160,52 @@ namespace ContextMenuManager.Methods
             MASK_VALID = 0x000000FF
         }
 
-        public static void HashLnk(string lnkPath)
+        public static bool HashLnk(string lnkPath)
         {
-            SHCreateItemFromParsingName(lnkPath, null, typeof(IShellItem2).GUID, out IShellItem item);
-            IShellItem2 item2 = (IShellItem2)item;
-            PSGetPropertyKeyFromName("System.Link.TargetParsingPath", out PropertyKey pk);
-            //shellPKey = PKEY_Link_TargetParsingPath
-            //formatID = B9B4B3FC-2B51-4A42-B5D8-324146AFCF25, propID = 2
-            string targetPath;
-            try { targetPath = item2.GetString(pk); }
-            catch { targetPath = null; }
+            if (string.IsNullOrWhiteSpace(lnkPath) || !System.IO.File.Exists(lnkPath)) return false;
 
-            PSGetPropertyKeyFromName("System.Link.Arguments", out pk);
-            //shellPKey = PKEY_Link_Arguments
-            //formatID = 436F2667-14E2-4FEB-B30A-146C53B5B674, propID = 100
-            string arguments;
-            try { arguments = item2.GetString(pk); }
-            catch { arguments = null; }
+            IShellItem item = null;
+            IPropertyStore store = null;
+            try
+            {
+                SHCreateItemFromParsingName(lnkPath, null, typeof(IShellItem2).GUID, out item);
+                IShellItem2 item2 = (IShellItem2)item;
 
-            string blob = GetGeneralizePath(targetPath) + arguments;
-            blob += "do not prehash links.  this should only be done by the user.";//特殊但必须存在的字符串
-            blob = blob.ToLower();
-            byte[] inBytes = Encoding.Unicode.GetBytes(blob);
-            int byteCount = inBytes.Length;
-            byte[] outBytes = new byte[byteCount];
-            HashData(inBytes, byteCount, outBytes, byteCount);
-            uint hash = BitConverter.ToUInt32(outBytes, 0);
+                if (PSGetPropertyKeyFromName("System.Link.TargetParsingPath", out PropertyKey pk) < 0) return false;
+                string targetPath;
+                try { targetPath = item2.GetString(pk); }
+                catch { targetPath = null; }
 
-            Guid guid = typeof(IPropertyStore).GUID;
-            IPropertyStore store = item2.GetPropertyStore(GPS.READWRITE, ref guid);
-            PSGetPropertyKeyFromName("System.Winx.Hash", out pk);
-            //shellPKey = PKEY_WINX_HASH
-            //formatID = FB8D2D7B-90D1-4E34-BF60-6EAC09922BBF, propID = 2
-            PropVariant pv = new PropVariant { VarType = VarEnum.VT_UI4, ulVal = hash };
-            store.SetValue(ref pk, ref pv);
-            store.Commit();
+                if (PSGetPropertyKeyFromName("System.Link.Arguments", out pk) < 0) return false;
+                string arguments;
+                try { arguments = item2.GetString(pk); }
+                catch { arguments = null; }
 
-            Marshal.ReleaseComObject(store);
-            Marshal.ReleaseComObject(item);
+                string blob = (GetGeneralizePath(targetPath) ?? string.Empty) + (arguments ?? string.Empty);
+                blob += "do not prehash links.  this should only be done by the user.";
+                byte[] inBytes = Encoding.Unicode.GetBytes(blob.ToLowerInvariant());
+                byte[] outBytes = new byte[4];
+                int hr = HashData(inBytes, inBytes.Length, outBytes, outBytes.Length);
+                if (hr < 0) Marshal.ThrowExceptionForHR(hr);
+                uint hash = BitConverter.ToUInt32(outBytes, 0);
+
+                Guid guid = typeof(IPropertyStore).GUID;
+                store = item2.GetPropertyStore(GPS.READWRITE, ref guid);
+                if (PSGetPropertyKeyFromName("System.Winx.Hash", out pk) < 0) return false;
+                PropVariant pv = new PropVariant { VarType = VarEnum.VT_UI4, uintVal = hash };
+                store.SetValue(ref pk, ref pv);
+                store.Commit();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                if (store != null && Marshal.IsComObject(store)) Marshal.ReleaseComObject(store);
+                if (item != null && Marshal.IsComObject(item)) Marshal.ReleaseComObject(item);
+            }
         }
 
         private static readonly Dictionary<string, string> GeneralizePathDic = new Dictionary<string, string>

@@ -25,6 +25,7 @@ namespace ContextMenuManager.Controls
             get => filePath;
             set
             {
+                this.ShellLink?.Dispose();
                 filePath = value;
                 this.ShellLink = new ShellLink(value);
                 this.Text = this.ItemText;
@@ -46,6 +47,7 @@ namespace ContextMenuManager.Controls
                 ShellLink.Description = value;
                 ShellLink.Save();
                 DesktopIni.SetLocalizedFileNames(FilePath, value);
+                WinXHasher.HashLnk(FilePath);
                 this.Text = ResourceString.GetDirectString(value);
                 ExplorerRestarter.Show();
             }
@@ -209,7 +211,9 @@ namespace ContextMenuManager.Controls
             File.Move(this.FilePath, path1);
             File.Move(item.FilePath, path2);
             if(name1 != string.Empty) DesktopIni.SetLocalizedFileNames(path1, name1);
-            if(name1 != string.Empty) DesktopIni.SetLocalizedFileNames(path2, name2);
+            if(name2 != string.Empty) DesktopIni.SetLocalizedFileNames(path2, name2);
+            WinXHasher.HashLnk(path1);
+            WinXHasher.HashLnk(path2);
             this.FilePath = path1;
             item.FilePath = path2;
             list.SetItemIndex(this, index);
@@ -218,10 +222,10 @@ namespace ContextMenuManager.Controls
 
         public void DeleteMe()
         {
+            this.ShellLink.Dispose();
             File.Delete(FilePath);
             DesktopIni.DeleteLocalizedFileNames(FilePath);
             ExplorerRestarter.Show();
-            this.ShellLink.Dispose();
         }
     }
 }

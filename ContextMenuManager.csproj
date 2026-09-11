@@ -25,7 +25,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>3.3.4.1</ApplicationVersion>
+    <ApplicationVersion>3.3.4.2</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -182,6 +182,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Methods\AppConfig.cs" />
+    <Compile Include="Methods\UiLanguage.cs" />
     <Compile Include="BluePointLilac.Methods\FormExtension.cs" />
     <Compile Include="BluePointLilac.Methods\MessageBoxEx.cs" />
     <Compile Include="BluePointLilac.Methods\ToolTipBox.cs" />
@@ -469,9 +470,6 @@
       <Version>6.8.2</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="ModernWpfUI">
-      <Version>0.9.6</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

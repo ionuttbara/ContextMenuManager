@@ -43,7 +43,7 @@ namespace ContextMenuManager.Methods
             dic.Clear();
             dic.Add(LoadXmlContent(defaultContent));
             // Keep slot 1 for compatibility with code that distinguishes default/user dictionaries.
-            // v3.3.4.1 intentionally has no external user dictionary files.
+            // v3.3.4.2 intentionally has no external user dictionary files.
             dic.Add(null);
         }
 

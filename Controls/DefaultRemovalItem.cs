@@ -86,14 +86,14 @@ namespace ContextMenuManager.Controls
                 cms.BackColor = Color.FromArgb(43, 43, 43);
             }
 
-            ToolStripMenuItem itemRemove = new ToolStripMenuItem("Remove from registry");
+            ToolStripMenuItem itemRemove = new ToolStripMenuItem(UiLanguage.Text("RemoveFromRegistry"));
             itemRemove.Image = Properties.Resources.Delete;
             itemRemove.Click += (s, e) =>
             {
                 this.ItemVisible = true;
             };
 
-            ToolStripMenuItem itemRestore = new ToolStripMenuItem("Restore to registry");
+            ToolStripMenuItem itemRestore = new ToolStripMenuItem(UiLanguage.Text("RestoreToRegistry"));
             itemRestore.Image = Properties.Resources.Add;
             itemRestore.Click += (s, e) =>
             {

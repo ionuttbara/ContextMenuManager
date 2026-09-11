@@ -31,7 +31,7 @@ namespace ContextMenuManager.Controls
             foreach (var extGroup in extGroups)
             {
                 if (currentCategory == PresetCategory.File || currentCategory == PresetCategory.Folder)
-                    this.AddItem(new CustomPresetGroupItem(extGroup.Key, $"Manage context menu items for {extGroup.Key}"));
+                    this.AddItem(new CustomPresetGroupItem(extGroup.Key, string.Format(UiLanguage.Text("ManageContextMenus"), extGroup.Key)));
 
                 var subGroups = extGroup.GroupBy(p => p.SubMenuGroup);
                 foreach (var subGroup in subGroups)
@@ -40,7 +40,7 @@ namespace ContextMenuManager.Controls
                     {
                         var first = subGroup.First();
                         string parentIcon = first.ParentMenu?.IconLocation ?? first.IconLocation;
-                        string parentDesc = first.ParentMenu?.Description ?? $"Submenu for {subGroup.Key}";
+                        string parentDesc = first.ParentMenu?.Description ?? string.Format(UiLanguage.Text("SubmenuFor"), subGroup.Key);
 
                         int headerIndent = (currentCategory == PresetCategory.File || currentCategory == PresetCategory.Folder) ? 1 : 0;
                         this.AddItem(new CustomPresetSubMenuHeaderItem(subGroup.Key, parentIcon, headerIndent, parentDesc));
@@ -62,9 +62,9 @@ namespace ContextMenuManager.Controls
 
         private MyListItem CreateBulkActionItem()
         {
-            MyListItem row = new MyListItem { Text = "Bulk actions", HasImage = false };
-            row.AddCtr(CreateButton("Remove all", AppImage.Delete, () => SetAll(false)));
-            row.AddCtr(CreateButton("Add all", AppImage.AddNewItem, () => SetAll(true)));
+            MyListItem row = new MyListItem { Text = UiLanguage.Text("BulkActions"), HasImage = false };
+            row.AddCtr(CreateButton(UiLanguage.Text("RemoveAll"), AppImage.Delete, () => SetAll(false)));
+            row.AddCtr(CreateButton(UiLanguage.Text("AddAll"), AppImage.AddNewItem, () => SetAll(true)));
             return row;
         }
 

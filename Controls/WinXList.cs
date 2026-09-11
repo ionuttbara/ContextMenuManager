@@ -17,6 +17,7 @@ namespace ContextMenuManager.Controls
 
         public void LoadItems()
         {
+            this.ClearItems();
             if (WinOsVersion.Current < WinOsVersion.Win8 || !Directory.Exists(WinXPath)) return;
             AddNewItem();
             LoadWinXItems();
@@ -64,6 +65,11 @@ namespace ContextMenuManager.Controls
             ToolTipBox.SetToolTip(btnCreateDir, AppString.Tip.CreateGroup);
             newItem.AddCtr(btnCreateDir);
             btnCreateDir.MouseDown += (sender, e) => CreateNewGroup();
+
+            PictureButton btnRepair = new PictureButton(AppImage.Refresh);
+            ToolTipBox.SetToolTip(btnRepair, UiLanguage.Text("WinXRepairTip"));
+            newItem.AddCtr(btnRepair);
+            btnRepair.MouseDown += (sender, e) => RepairWinXMetadata();
             newItem.AddNewItem += () =>
             {
                 string[] groupNames = GetGroupNames();
@@ -138,6 +144,24 @@ namespace ContextMenuManager.Controls
             File.SetAttributes(dirPath, File.GetAttributes(dirPath) | FileAttributes.ReadOnly);
             File.SetAttributes(iniPath, File.GetAttributes(iniPath) | FileAttributes.Hidden | FileAttributes.System);
             InsertItem(new WinXGroupItem(dirPath), 1);
+        }
+
+        private void RepairWinXMetadata()
+        {
+            int updated = 0;
+            int failed = 0;
+            foreach (string groupPath in GetOrderedGroupPaths())
+            {
+                foreach (string lnkPath in Directory.GetFiles(groupPath, "*.lnk"))
+                {
+                    if (WinXHasher.HashLnk(lnkPath)) updated++;
+                    else failed++;
+                }
+            }
+
+            ExplorerRestarter.Show();
+            AppMessageBox.Show(string.Format(UiLanguage.Text("WinXRepairDone"), updated, failed),
+                MessageBoxButtons.OK, failed == 0 ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
         }
 
         private static string GetNextGroupPath()
@@ -262,6 +286,7 @@ namespace ContextMenuManager.Controls
                     dstLnk.Description = staged[i].Item3;
                     dstLnk.Save();
                 }
+                WinXHasher.HashLnk(dstPath);
                 normalizedPaths.Add(dstPath);
             }
 
