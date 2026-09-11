@@ -151,13 +151,13 @@ namespace ContextMenuManager.Controls
             using(SelectDialog dlg = new SelectDialog())
             {
                 dlg.Title = AppString.Dialog.SelectGroup;
-             //   dlg.Items = WinXList.GetGroupNames();
+                dlg.Items = WinXList.GetGroupNames();
                 dlg.Selected = this.FoldGroupItem.Text;
                 if(dlg.ShowDialog() != DialogResult.OK) return;
                 if(dlg.Selected == this.FoldGroupItem.Text) return;
                 string dirPath = $@"{WinXList.WinXPath}\{dlg.Selected}";
-                int count = Directory.GetFiles(dirPath, "*.lnk").Length;
-                string num = (count + 1).ToString().PadLeft(2, '0');
+                int nextIndex = WinXList.GetNextShortcutIndex(dirPath);
+                string num = nextIndex.ToString("00");
                 string partName = this.FileName;
                 int index = partName.IndexOf(" - ");
                 if(index > 0) partName = partName.Substring(index + 3);
@@ -167,6 +167,7 @@ namespace ContextMenuManager.Controls
                 DesktopIni.DeleteLocalizedFileNames(FilePath);
                 if(text != string.Empty) DesktopIni.SetLocalizedFileNames(lnkPath, text);
                 File.Move(FilePath, lnkPath);
+                WinXHasher.HashLnk(lnkPath);
                 this.FilePath = lnkPath;
                 WinXList list = (WinXList)this.Parent;
                 list.Controls.Remove(this);

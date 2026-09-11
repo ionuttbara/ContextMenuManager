@@ -13,11 +13,8 @@ namespace BluePointLilac.Controls
 			this.SuspendLayout();
 			this.Text = Application.ProductName;
 
-			// --- NEW: Apply Dark/Light mode base colors ---
-			bool isDark = ThemeManager.IsDarkMode();
-			this.ForeColor = isDark ? Color.White : Color.FromArgb(80, 80, 80);
-			this.BackColor = isDark ? Color.FromArgb(32, 32, 32) : Color.FromArgb(250, 250, 250);
-			// ----------------------------------------------
+            this.ForeColor = ThemeManager.GetWindowForeColor();
+            this.BackColor = ThemeManager.GetWindowBackColor();
 
 			this.StartPosition = FormStartPosition.CenterScreen;
 			this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
@@ -40,6 +37,13 @@ namespace BluePointLilac.Controls
         public bool SuspendMainBodyWhenMove { get; set; } = false;
         /// <summary>窗体调整大小时是否临时挂起MainBody</summary>
         public bool SuspendMainBodyWhenResize { get; set; } = true;
+
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            ThemeManager.ApplyTitleBar(this);
+        }
 
         protected override void OnResize(EventArgs e)
         {
@@ -96,6 +100,14 @@ namespace BluePointLilac.Controls
                 this.ResumeLayout();
             }
             else base.WndProc(ref m);
+
+            const int WM_SETTINGCHANGE = 0x001A;
+            const int WM_THEMECHANGED = 0x031A;
+            const int WM_DWMCOLORIZATIONCOLORCHANGED = 0x0320;
+            if (m.Msg == WM_SETTINGCHANGE || m.Msg == WM_THEMECHANGED || m.Msg == WM_DWMCOLORIZATIONCOLORCHANGED)
+            {
+                ThemeManager.ApplyTitleBar(this);
+            }
         }
-	}
+    }
 }

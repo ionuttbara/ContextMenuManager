@@ -1,7 +1,11 @@
 ﻿using BluePointLilac.Controls;
+using ContextMenuManager.BluePointLilac.Methods;
 using ContextMenuManager.Methods;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace ContextMenuManager.Controls
 {
@@ -21,17 +25,15 @@ namespace ContextMenuManager.Controls
             this.ClearItems();
             List<CustomPreset> items = CustomPresetsManager.GetPresetsByCategory(currentCategory);
 
-            var extGroups = items.GroupBy(p => p.ExtensionGroup);
+            this.AddItem(CreateBulkActionItem());
 
+            var extGroups = items.GroupBy(p => p.ExtensionGroup);
             foreach (var extGroup in extGroups)
             {
                 if (currentCategory == PresetCategory.File || currentCategory == PresetCategory.Folder)
-                {
                     this.AddItem(new CustomPresetGroupItem(extGroup.Key, $"Manage context menu items for {extGroup.Key}"));
-                }
 
                 var subGroups = extGroup.GroupBy(p => p.SubMenuGroup);
-
                 foreach (var subGroup in subGroups)
                 {
                     if (!string.IsNullOrEmpty(subGroup.Key))
@@ -45,21 +47,55 @@ namespace ContextMenuManager.Controls
 
                         int childIndent = headerIndent + 1;
                         foreach (var preset in subGroup)
-                        {
                             this.AddItem(new CustomPresetItem(preset, indentLevel: childIndent));
-                        }
                     }
                     else
                     {
                         int directIndent = (currentCategory == PresetCategory.File || currentCategory == PresetCategory.Folder) ? 1 : 0;
                         foreach (var preset in subGroup)
-                        {
                             this.AddItem(new CustomPresetItem(preset, indentLevel: directIndent));
-                        }
                     }
                 }
             }
             this.ResumeLayout(true);
+        }
+
+        private MyListItem CreateBulkActionItem()
+        {
+            MyListItem row = new MyListItem { Text = "Bulk actions", HasImage = false };
+            row.AddCtr(CreateButton("Remove all", AppImage.Delete, () => SetAll(false)));
+            row.AddCtr(CreateButton("Add all", AppImage.AddNewItem, () => SetAll(true)));
+            return row;
+        }
+
+        private static Button CreateButton(string text, Image image, Action action)
+        {
+            Button button = new Button
+            {
+                Text = text,
+                Image = image,
+                AutoSize = true,
+                TextImageRelation = TextImageRelation.ImageBeforeText,
+                Padding = new Padding(4, 1, 4, 1),
+                UseVisualStyleBackColor = false
+            };
+            button.Click += (sender, e) => action();
+            ThemeManager.ApplyTheme(button);
+            return button;
+        }
+
+        private void SetAll(bool install)
+        {
+            foreach (CustomPreset preset in CustomPresetsManager.GetPresetsByCategory(currentCategory))
+            {
+                try
+                {
+                    if (install) preset.Install();
+                    else preset.Uninstall();
+                }
+                catch { }
+            }
+            this.BeginInvoke(new Action(LoadItems));
         }
     }
 }

@@ -1,4 +1,4 @@
-using BluePointLilac.Methods;
+﻿using BluePointLilac.Methods;
 using ContextMenuManager.BluePointLilac.Methods;
 using System;
 using System.ComponentModel;
@@ -9,7 +9,7 @@ namespace BluePointLilac.Controls
 {
     public sealed class MyStatusBar : Panel
     {
-        public static readonly string DefaultText = "Ver: 3.3.3.2 (.NET 4.8)";
+        public static readonly string DefaultText = "Ver: 3.3.4.0 (.NET 4.8)";
 
 
 		public MyStatusBar()

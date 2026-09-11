@@ -4,78 +4,80 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Xml;
 
 namespace ContextMenuManager.Methods
 {
     static class XmlDicHelper
     {
-        public static readonly List<XmlDocument> EnhanceMenusDic =
-    new List<XmlDocument>();
+        public static readonly List<XmlDocument> EnhanceMenusDic = new List<XmlDocument>();
         public static readonly List<XmlDocument> DetailedEditDic = new List<XmlDocument>();
         public static readonly List<XmlDocument> UwpModeItemsDic = new List<XmlDocument>();
-        public static readonly Dictionary<string, bool> EnhanceMenuPathDic
-            = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        public static readonly Dictionary<string, bool> EnhanceMenuPathDic =
+            new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         public static readonly Dictionary<Guid, bool> DetailedEditGuidDic = new Dictionary<Guid, bool>();
 
-        /// <summary>重新加载字典</summary>
+        static XmlDicHelper()
+        {
+            ReloadDics();
+        }
+
+        private static XmlDocument LoadXmlContent(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content)) return null;
+            try
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(content);
+                return doc;
+            }
+            catch (Exception e)
+            {
+                AppMessageBox.Show(e.Message);
+                return null;
+            }
+        }
+
+        private static void LoadEmbeddedDic(List<XmlDocument> dic, string defaultContent)
+        {
+            dic.Clear();
+            dic.Add(LoadXmlContent(defaultContent));
+            // Keep slot 1 for compatibility with code that distinguishes default/user dictionaries.
+            // v3.3.4.1 intentionally has no external user dictionary files.
+            dic.Add(null);
+        }
+
         public static void ReloadDics()
         {
-            XmlDocument LoadXml(string xmlPath)
-            {
-                if(!File.Exists(xmlPath)) return null;
-                try
-                {
-                    XmlDocument doc = new XmlDocument();
-					doc.Load(xmlPath);
-					return doc;
-                }
-                catch(Exception e)
-                {
-                    AppMessageBox.Show(e.Message + "\n" + xmlPath);
-                    return null;
-                }
-            }
+            LoadEmbeddedDic(UwpModeItemsDic, Properties.Resources.UwpModeItemsDic);
+            LoadEmbeddedDic(DetailedEditDic, Properties.Resources.DetailedEditDic);
 
-			void LoadDic(List<XmlDocument> dic, string webPath, string userPath, string defaultContent)
-			{
-				// Adaugă linia asta pentru a te asigura că folderul există mereu înainte de a crea fișierul:
-				Directory.CreateDirectory(Path.GetDirectoryName(webPath));
-
-				if (!File.Exists(webPath)) File.WriteAllText(webPath, defaultContent, Encoding.Unicode);
-				dic.Clear();
-				dic.Add(LoadXml(webPath));
-				dic.Add(LoadXml(userPath));
-			}
-
-			LoadDic(UwpModeItemsDic, AppConfig.WebUwpModeItemsDic,
-                AppConfig.UserUwpModeItemsDic, Properties.Resources.UwpModeItemsDic);
-            LoadDic(DetailedEditDic, AppConfig.WebDetailedEditDic,
-                AppConfig.UserDetailedEditDic, Properties.Resources.DetailedEditDic);
+            EnhanceMenusDic.Clear();
+            EnhanceMenusDic.Add(null);
+            EnhanceMenusDic.Add(null);
 
             EnhanceMenuPathDic.Clear();
-            for(int i = 0; i < 2; i++)
+            for (int i = 0; i < EnhanceMenusDic.Count; i++)
             {
                 XmlDocument doc = EnhanceMenusDic[i];
-                if(doc?.DocumentElement == null) continue;
-                foreach(XmlNode pathXN in doc.SelectNodes("Data/Group/RegPath"))
+                if (doc?.DocumentElement == null) continue;
+                foreach (XmlNode pathXN in doc.SelectNodes("Data/Group/RegPath"))
                 {
-                    if(EnhanceMenuPathDic.ContainsKey(pathXN.InnerText)) continue;
+                    if (EnhanceMenuPathDic.ContainsKey(pathXN.InnerText)) continue;
                     EnhanceMenuPathDic.Add(pathXN.InnerText, i == 1);
                 }
             }
 
             DetailedEditGuidDic.Clear();
-            for(int i = 0; i < 2; i++)
+            for (int i = 0; i < DetailedEditDic.Count; i++)
             {
                 XmlDocument doc = DetailedEditDic[i];
-                if(doc?.DocumentElement == null) continue;
-                foreach(XmlNode guidXN in doc.SelectNodes("Data/Group/Guid"))
+                if (doc?.DocumentElement == null) continue;
+                foreach (XmlNode guidXN in doc.SelectNodes("Data/Group/Guid"))
                 {
-                    if(GuidEx.TryParse(guidXN.InnerText, out Guid guid))
+                    if (GuidEx.TryParse(guidXN.InnerText, out Guid guid))
                     {
-                        if(DetailedEditGuidDic.ContainsKey(guid)) continue;
+                        if (DetailedEditGuidDic.ContainsKey(guid)) continue;
                         DetailedEditGuidDic.Add(guid, i == 1);
                     }
                 }
@@ -84,55 +86,44 @@ namespace ContextMenuManager.Methods
 
         public static bool JudgeOSVersion(XmlNode itemXN)
         {
-            //return true;//测试用
             bool JudgeOne(XmlNode osXN)
             {
                 Version ver = new Version(osXN.InnerText);
                 Version osVer = Environment.OSVersion.Version;
                 int compare = osVer.CompareTo(ver);
                 string symbol = ((XmlElement)osXN).GetAttribute("Compare");
-                switch(symbol)
+                switch (symbol)
                 {
-                    case ">":
-                        return compare > 0;
-                    case "<":
-                        return compare < 0;
-                    case "=":
-                        return compare == 0;
-                    case ">=":
-                        return compare >= 0;
-                    case "<=":
-                        return compare <= 0;
-                    default:
-                        return true;
+                    case ">": return compare > 0;
+                    case "<": return compare < 0;
+                    case "=": return compare == 0;
+                    case ">=": return compare >= 0;
+                    case "<=": return compare <= 0;
+                    default: return true;
                 }
             }
 
-            foreach(XmlNode osXN in itemXN.SelectNodes("OSVersion"))
-            {
-                if(!JudgeOne(osXN)) return false;
-            }
+            foreach (XmlNode osXN in itemXN.SelectNodes("OSVersion"))
+                if (!JudgeOne(osXN)) return false;
             return true;
         }
 
         public static bool FileExists(XmlNode itemXN)
         {
-            //return true;//测试用
-            foreach(XmlNode feXN in itemXN.SelectNodes("FileExists"))
+            foreach (XmlNode feXN in itemXN.SelectNodes("FileExists"))
             {
                 string path = Environment.ExpandEnvironmentVariables(feXN.InnerText);
-                if(!File.Exists(path)) return false;
+                if (!File.Exists(path)) return false;
             }
             return true;
         }
 
         public static bool JudgeCulture(XmlNode itemXN)
         {
-            //return true;//测试用
             string culture = itemXN.SelectSingleNode("Culture")?.InnerText;
-            if(string.IsNullOrEmpty(culture)) return true;
-            if(culture.Equals(AppConfig.Language, StringComparison.OrdinalIgnoreCase)) return true;
-            if(culture.Equals(CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase)) return true;
+            if (string.IsNullOrEmpty(culture)) return true;
+            if (culture.Equals(AppConfig.Language, StringComparison.OrdinalIgnoreCase)) return true;
+            if (culture.Equals(CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase)) return true;
             return false;
         }
 
@@ -142,10 +133,7 @@ namespace ContextMenuManager.Methods
             {
                 string[] strs = value.Split(' ');
                 byte[] bs = new byte[strs.Length];
-                for(int i = 0; i < strs.Length; i++)
-                {
-                    bs[i] = Convert.ToByte(strs[i], 16);
-                }
+                for (int i = 0; i < strs.Length; i++) bs[i] = Convert.ToByte(strs[i], 16);
                 return bs;
             }
             catch { return null; }
@@ -153,22 +141,15 @@ namespace ContextMenuManager.Methods
 
         public static RegistryValueKind GetValueKind(string type, RegistryValueKind defaultKind)
         {
-            switch(type.ToUpper())
+            switch (type.ToUpper())
             {
-                case "REG_SZ":
-                    return RegistryValueKind.String;
-                case "REG_BINARY":
-                    return RegistryValueKind.Binary;
-                case "REG_DWORD":
-                    return RegistryValueKind.DWord;
-                case "REG_QWORD":
-                    return RegistryValueKind.QWord;
-                case "REG_MULTI_SZ":
-                    return RegistryValueKind.MultiString;
-                case "REG_EXPAND_SZ":
-                    return RegistryValueKind.ExpandString;
-                default:
-                    return defaultKind;
+                case "REG_SZ": return RegistryValueKind.String;
+                case "REG_BINARY": return RegistryValueKind.Binary;
+                case "REG_DWORD": return RegistryValueKind.DWord;
+                case "REG_QWORD": return RegistryValueKind.QWord;
+                case "REG_MULTI_SZ": return RegistryValueKind.MultiString;
+                case "REG_EXPAND_SZ": return RegistryValueKind.ExpandString;
+                default: return defaultKind;
             }
         }
     }

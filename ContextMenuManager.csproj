@@ -10,7 +10,7 @@
     <AssemblyName>ContextMenuManager</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <TargetFrameworkProfile />
@@ -25,7 +25,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <ApplicationVersion>3.3.4.1</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -166,13 +166,7 @@
     <Compile Include="Controls\DetailedEditDialog.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Controls\DictionariesBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Controls\Interfaces\IBtnDeleteItem.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Controls\LanguagesBox.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\SubItemsForm.cs">
@@ -204,7 +198,6 @@
     <Compile Include="Methods\CustomPresetsManager.cs" />
     <Compile Include="Methods\DefaultMenuRemovalManager.cs" />
     <Compile Include="Methods\DesktopIni.cs" />
-    <Compile Include="BluePointLilac.Methods\DirectoryEx.cs" />
     <Compile Include="BluePointLilac.Methods\ElevatedFileDroper.cs" />
     <Compile Include="BluePointLilac.Methods\FileExtension.cs" />
     <Compile Include="BluePointLilac.Methods\GuidEx.cs" />
@@ -407,8 +400,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Methods\Updater.cs" />
-    <None Include="App.config" />
     <None Include="Properties\App.manifest" />
     <None Include="Properties\Resources\ShellNew\0.rar" />
     <None Include="Properties\Resources\ShellNew\0.reg" />
@@ -429,16 +420,7 @@
     <Content Include="Properties\Resources\ShellNew\0.html" />
     <Content Include="Properties\Resources\ShellNew\0.xml" />
     <Content Include="Properties\Resources\Texts\UwpModeItemsDic.xml" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6">
@@ -466,7 +448,6 @@
     <Content Include="Properties\Resources\Images\SubItems.png" />
     <Content Include="Properties\Resources\Images\Type.png" />
     <Content Include="Properties\Resources\Images\Up.png" />
-    <Content Include="Properties\Resources\Images\Donate.png" />
     <Content Include="Properties\Resources\Texts\DetailedEditDic.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -482,7 +463,6 @@
   <ItemGroup>
     <PackageReference Include="Costura.Fody">
       <Version>6.0.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Fody">

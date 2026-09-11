@@ -1,4 +1,4 @@
-using BluePointLilac.Controls;
+﻿using BluePointLilac.Controls;
 using ContextMenuManager.BluePointLilac.Methods;
 using ContextMenuManager.Controls.Interfaces;
 using ContextMenuManager.Methods;
@@ -66,7 +66,8 @@ namespace ContextMenuManager.Controls
             this.IndentLevel = indentLevel;
             this.Text = def.Name;
 
-            this.Image = IconHelper.GetIconImage(def.IconLocation) ?? Properties.Resources.Delete;
+            this.Image = IconHelper.GetIconImage(def.IconLocation) ?? AppImage.Delete;
+            this.SetContentIndent(this.IndentLevel);
 
             this.ChkVisible = new VisibleCheckBox(this);
             this.ChkVisible.Checked = this.ItemVisible;
@@ -74,20 +75,6 @@ namespace ContextMenuManager.Controls
             InitContextMenu();
         }
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            int shift = IndentLevel * 28;
-            if (shift > 0)
-            {
-                e.Graphics.TranslateTransform(shift, 0);
-                base.OnPaint(e);
-                e.Graphics.ResetTransform();
-            }
-            else
-            {
-                base.OnPaint(e);
-            }
-        }
 
         private void InitContextMenu()
         {

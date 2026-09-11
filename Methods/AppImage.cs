@@ -1,4 +1,5 @@
 ﻿using BluePointLilac.Methods;
+using ContextMenuManager.BluePointLilac.Methods;
 using ContextMenuManager.Properties;
 using System.Drawing;
 using System.Windows.Forms;
@@ -90,6 +91,33 @@ namespace ContextMenuManager.Methods
         public static readonly Image Lock = GetIconImage("imageres.dll", -59);
         ///<summary>快捷方式图标</summary>
         public static readonly Image LnkFile = GetIconImage("shell32.dll", -16769);
+
+        // Consistent, clearly visible toolbar glyphs.  The source alpha/shape is preserved,
+        // while every top-level page gets a deliberate color instead of mixing white/blue assets.
+        public static readonly Image ToolbarHome = TintIcon(Home, ThemeManager.GetSystemAccentColor());
+        public static readonly Image ToolbarType = TintIcon(Type, Color.FromArgb(126, 87, 194));
+        public static readonly Image ToolbarCustom = TintIcon(Custom, Color.FromArgb(0, 153, 119));
+        public static readonly Image ToolbarRemove = TintIcon(Delete, Color.FromArgb(210, 62, 70));
+        public static readonly Image ToolbarAbout = TintIcon(About, Color.FromArgb(226, 151, 31));
+
+        public static Image TintIcon(Image source, Color color)
+        {
+            if (source == null) return null;
+            Bitmap result = new Bitmap(source.Width, source.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            using (Bitmap src = new Bitmap(source))
+            {
+                for (int y = 0; y < src.Height; y++)
+                {
+                    for (int x = 0; x < src.Width; x++)
+                    {
+                        Color pixel = src.GetPixel(x, y);
+                        if (pixel.A == 0) continue;
+                        result.SetPixel(x, y, Color.FromArgb(pixel.A, color));
+                    }
+                }
+            }
+            return result;
+        }
 
         private static Image GetIconImage(string dllName, int iconIndex)
         {

@@ -26,8 +26,6 @@ namespace ContextMenuManager.Methods
             public string Tostring() => $"{IconPath},{IconIndex}";
         }
 
-        private static readonly IniWriter UserDic = new IniWriter(AppConfig.UserGuidInfosDic);
-        private static readonly IniReader WebDic = new IniReader(AppConfig.WebGuidInfosDic);
         private static readonly IniReader AppDic = new IniReader(new StringBuilder(Properties.Resources.GuidInfosDic));
         private static readonly Dictionary<Guid, IconLocation> IconLocationDic = new Dictionary<Guid, IconLocation>();
         private static readonly Dictionary<Guid, string> ItemTextDic = new Dictionary<Guid, string>();
@@ -39,7 +37,6 @@ namespace ContextMenuManager.Methods
         /// <summary>重新加载字典</summary>
         public static void ReloadDics()
         {
-            WebDic.LoadFile(AppConfig.WebGuidInfosDic);
             IconLocationDic.Clear();
             ItemTextDic.Clear();
             ItemImageDic.Clear();
@@ -58,14 +55,46 @@ namespace ContextMenuManager.Methods
             UwpNameDic.Remove(guid);
         }
 
+        private static string GetUserRegistryPath(Guid guid)
+            => $@"{AppConfig.RegistryRoot}\GuidInfos\{guid}";
+
+        public static void SetUserInfo(Guid guid, string text, string icon)
+        {
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(GetUserRegistryPath(guid)))
+                {
+                    if (key == null) return;
+                    if (string.IsNullOrWhiteSpace(text)) key.DeleteValue("Text", false);
+                    else key.SetValue("Text", text, RegistryValueKind.String);
+                    if (string.IsNullOrWhiteSpace(icon)) key.DeleteValue("Icon", false);
+                    else key.SetValue("Icon", icon, RegistryValueKind.String);
+                }
+            }
+            catch { }
+            RemoveDic(guid);
+        }
+
+        public static void DeleteUserInfo(Guid guid)
+        {
+            try { Registry.CurrentUser.DeleteSubKeyTree(GetUserRegistryPath(guid), false); } catch { }
+            RemoveDic(guid);
+        }
+
         private static bool TryGetValue(Guid guid, string key, out string value)
         {
-            //用户自定义字典优先
-            string section = guid.ToString();
-            value = UserDic.GetValue(section, key);
-            if(value != string.Empty) return true;
-            if(WebDic.TryGetValue(section, key, out value)) return true;
-            if(AppDic.TryGetValue(section, key, out value)) return true;
+            try
+            {
+                using (RegistryKey userKey = Registry.CurrentUser.OpenSubKey(GetUserRegistryPath(guid)))
+                {
+                    value = userKey?.GetValue(key)?.ToString();
+                    if (!string.IsNullOrEmpty(value)) return true;
+                }
+            }
+            catch { }
+
+            if (AppDic.TryGetValue(guid.ToString(), key, out value)) return true;
+            value = string.Empty;
             return false;
         }
 

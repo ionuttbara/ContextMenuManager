@@ -42,11 +42,11 @@ namespace ContextMenuManager
 
         readonly MyToolBarButton[] ToolBarButtons =
         {
-            new MyToolBarButton(AppImage.Home, "Current items"),
-            new MyToolBarButton(AppImage.Type, AppString.ToolBar.Type),
-            new MyToolBarButton(AppImage.Custom, "Add Custom Items"),
-            new MyToolBarButton(Properties.Resources.Delete, "Remove Default Menus"),
-            new MyToolBarButton(AppImage.About, AppString.ToolBar.About)
+            new MyToolBarButton(AppImage.ToolbarHome, "Current items"),
+            new MyToolBarButton(AppImage.ToolbarType, AppString.ToolBar.Type),
+            new MyToolBarButton(AppImage.ToolbarCustom, "Add Custom Items"),
+            new MyToolBarButton(AppImage.ToolbarRemove, "Remove Default Menus"),
+            new MyToolBarButton(AppImage.ToolbarAbout, AppString.ToolBar.About)
         };
 
         private Control[] MainControls => new Control[]
@@ -221,8 +221,8 @@ namespace ContextMenuManager
         // Tab 4: About
         static readonly string[] AboutItems =
         {
-            AppString.SideBar.AppSetting,
-            AppString.SideBar.AboutApp
+            AppString.SideBar.AppSetting
+          //  AppString.SideBar.AboutApp
         };
 
         static readonly string[] AboutItemInfos =
@@ -500,6 +500,7 @@ namespace ContextMenuManager
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
             aboutMeBox.AppendText("Technical Details:\n");
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
+            aboutMeBox.AppendText("• Version: 3.3.4.1\n");
             aboutMeBox.AppendText("• Platform: Microsoft .NET Framework 4.8\n");
             aboutMeBox.AppendText("• Architecture: AnyCPU (Native 64-bit / ARM64 / 32-bit execution)\n");
             aboutMeBox.AppendText("• DPI Awareness: Per-Monitor V2 High-DPI auto-rescaling enabled\n\n");

@@ -1,4 +1,4 @@
-using BluePointLilac.Methods;
+﻿using BluePointLilac.Methods;
 using System;
 using System.Reflection;
 using System.Text;
@@ -7,13 +7,11 @@ namespace ContextMenuManager.Methods
 {
     static class AppString
     {
-        private static readonly IniReader UserLangReader = new IniReader(AppConfig.LanguageIniPath);
         public static readonly IniReader DefLangReader = new IniReader(new StringBuilder(Properties.Resources.AppLanguageDic));
 
         private static string GetValue(string section, string key)
         {
-            string value = UserLangReader.GetValue(section, key);
-            if(string.IsNullOrEmpty(value)) value = DefLangReader.GetValue(section, key);
+            string value = DefLangReader.GetValue(section, key);
             return value.Replace("\\r", "\r").Replace("\\n", "\n");
         }
 
@@ -78,10 +76,7 @@ namespace ContextMenuManager.Methods
             public static string CustomRegPath { get; set; }
             public static string IEMenu { get; set; }
             public static string AppSetting { get; set; }
-            public static string AboutApp { get; set; }
-            public static string Dictionaries { get; set; }
             public static string AppLanguage { get; set; }
-            public static string Donate { get; set; }
         }
 
         /// <summary>状态栏</summary>
@@ -270,11 +265,8 @@ namespace ContextMenuManager.Methods
             public static string AddFromParentMenu { get; set; }
             public static string DeleteGuidDic { get; set; }
             public static string LockNewMenu { get; set; }
-            public static string ConfigPath { get; set; }
-            public static string CommandFiles { get; set; }
             public static string CreateGroup { get; set; }
             public static string DropOrSelectObject { get; set; }
-            public static string ImmediatelyCheck { get; set; }
         }
 
         /// <summary>其他文本</summary>
@@ -297,28 +289,7 @@ namespace ContextMenuManager.Methods
             public static string WebDictionaries { get; set; }
             public static string SwitchDictionaries { get; set; }
             public static string UserDictionaries { get; set; }
-            public static string DictionaryDescription { get; set; }
-            public static string GuidInfosDictionary { get; set; }
-            public static string UwpMode { get; set; }
-            public static string Translators { get; set; }
-            public static string AboutApp { get; set; }
-            public static string Dictionaries { get; set; }
-            public static string Donate { get; set; }
-            public static string DonationList { get; set; }
-            public static string ConfigPath { get; set; }
-            public static string AppDataDir { get; set; }
-            public static string AppDir { get; set; }
-            public static string AutoBackup { get; set; }
-            public static string SetUpdateFrequency { get; set; }
-            public static string OnceAWeek { get; set; }
-            public static string OnceAMonth { get; set; }
-            public static string OnceASeason { get; set; }
-            public static string NeverCheck { get; set; }
-            public static string SetRequestRepo { get; set; }
             public static string ProtectOpenItem { get; set; }
-            public static string WebSearchEngine { get; set; }
-            public static string CustomEngine { get; set; }
-            public static string SetCustomEngine { get; set; }
             public static string WinXSortable { get; set; }
             public static string ShowFilePath { get; set; }
             public static string OpenMoreRegedit { get; set; }

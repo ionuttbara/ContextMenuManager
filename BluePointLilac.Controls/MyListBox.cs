@@ -204,6 +204,8 @@ namespace BluePointLilac.Controls
         }
 
         private bool hasImage;
+        private int contentIndentLevel;
+
         public bool HasImage
         {
             get => hasImage;
@@ -211,8 +213,21 @@ namespace BluePointLilac.Controls
             {
                 hasImage = value;
                 picImage.Visible = value;
-                lblText.Left = (value ? 60 : 20).DpiZoom();
+                ApplyContentIndent();
             }
+        }
+
+        public void SetContentIndent(int level)
+        {
+            contentIndentLevel = Math.Max(0, level);
+            ApplyContentIndent();
+        }
+
+        private void ApplyContentIndent()
+        {
+            int shift = (contentIndentLevel * 28).DpiZoom();
+            picImage.Left = 20.DpiZoom() + shift;
+            lblText.Left = (hasImage ? 60 : 20).DpiZoom() + shift;
         }
 
         private readonly Label lblText = new Label
@@ -222,8 +237,10 @@ namespace BluePointLilac.Controls
         };
         private readonly PictureBox picImage = new PictureBox
         {
-            SizeMode = PictureBoxSizeMode.AutoSize,
+            SizeMode = PictureBoxSizeMode.Zoom,
+            Size = new Size(32, 32).DpiZoom(),
             Left = 20.DpiZoom(),
+            BackColor = Color.Transparent,
             Enabled = false,
             Name = "Image"
         };

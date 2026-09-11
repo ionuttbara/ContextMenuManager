@@ -74,19 +74,12 @@ namespace ContextMenuManager.Controls.Interfaces
                 var location = GuidInfo.GetIconLocation(Item.Guid);
                 dlg.ItemIconPath = location.IconPath;
                 dlg.ItemIconIndex = location.IconIndex;
-                IniWriter writer = new IniWriter
-                {
-                    FilePath = AppConfig.UserGuidInfosDic,
-                    DeleteFileWhenEmpty = true
-                };
-                string section = Item.Guid.ToString();
                 MyListItem listItem = (MyListItem)Item;
                 if(dlg.ShowDialog() != DialogResult.OK)
                 {
                     if(dlg.IsDelete)
                     {
-                        writer.DeleteSection(section);
-                        GuidInfo.RemoveDic(Item.Guid);
+                        GuidInfo.DeleteUserInfo(Item.Guid);
                         listItem.Text = Item.ItemText;
                         listItem.Image = GuidInfo.GetImage(Item.Guid);
                     }
@@ -105,9 +98,7 @@ namespace ContextMenuManager.Controls.Interfaces
                 }
                 else
                 {
-                    GuidInfo.RemoveDic(Item.Guid);
-                    writer.SetValue(section, "Text", dlg.ItemText);
-                    writer.SetValue(section, "Icon", dlg.ItemIconLocation);
+                    GuidInfo.SetUserInfo(Item.Guid, dlg.ItemText, dlg.ItemIconLocation);
                     listItem.Text = dlg.ItemText;
                     listItem.Image = dlg.ItemIcon;
                 }

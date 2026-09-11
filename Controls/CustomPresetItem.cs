@@ -36,24 +36,11 @@ namespace ContextMenuManager.Controls
             this.Text = subMenuTitle;
             this.Description = description ?? $"Submenu container for {subMenuTitle}";
             this.Image = IconHelper.GetIconImage(iconLocation) ?? AppImage.Custom;
+            this.SetContentIndent(this.IndentLevel);
             this.Font = new Font(this.Font.FontFamily, this.Font.Size, FontStyle.Bold);
             this.ForeColor = ThemeManager.IsDarkMode() ? Color.FromArgb(200, 200, 200) : Color.FromArgb(50, 50, 50);
         }
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            int shift = IndentLevel * 28;
-            if (shift > 0)
-            {
-                e.Graphics.TranslateTransform(shift, 0);
-                base.OnPaint(e);
-                e.Graphics.ResetTransform();
-            }
-            else
-            {
-                base.OnPaint(e);
-            }
-        }
     }
 
     // Nivel 1 sau 2: Element configurabil (Toggle Switch + Context Menu)
@@ -101,6 +88,7 @@ namespace ContextMenuManager.Controls
             this.Text = preset.Name;
 
             this.Image = IconHelper.GetIconImage(preset.IconLocation) ?? AppImage.Custom;
+            this.SetContentIndent(this.IndentLevel);
 
             this.ChkVisible = new VisibleCheckBox(this);
             this.ChkVisible.Checked = this.ItemVisible;
@@ -108,20 +96,6 @@ namespace ContextMenuManager.Controls
             InitContextMenu();
         }
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            int shift = IndentLevel * 28;
-            if (shift > 0)
-            {
-                e.Graphics.TranslateTransform(shift, 0);
-                base.OnPaint(e);
-                e.Graphics.ResetTransform();
-            }
-            else
-            {
-                base.OnPaint(e);
-            }
-        }
 
         private void InitContextMenu()
         {

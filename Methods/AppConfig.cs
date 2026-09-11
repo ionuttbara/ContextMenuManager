@@ -1,270 +1,114 @@
-﻿using BluePointLilac.Methods;
+﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
 
 namespace ContextMenuManager.Methods
 {
     static class AppConfig
     {
-        static AppConfig()
+        public const string RegistryRoot = @"Software\ContextMenuManager";
+
+        private static object GetValue(string section, string key)
         {
-            CreateDirectory();
-            ReloadConfig();
-            LoadLanguage();
-        }
-
-        public const string GithubLatest = "https://github.com/BluePointLilac/ContextMenuManager/releases/latest";
-        public const string GithubLatestApi = "https://api.github.com/repos/BluePointLilac/ContextMenuManager/releases/latest";
-        public const string GithubLangsApi = "https://api.github.com/repos/BluePointLilac/ContextMenuManager/contents/languages";
-        public const string GithubLangsRawDir = "https://raw.githubusercontent.com/BluePointLilac/ContextMenuManager/master/languages";
-        public const string GithubShellNewApi = "https://api.github.com/repos/BluePointLilac/ContextMenuManager/contents/ContextMenuManager/Properties/Resources/ShellNew";
-        public const string GithubShellNewRawDir = "https://raw.githubusercontent.com/BluePointLilac/ContextMenuManager/master/ContextMenuManager/Properties/Resources/ShellNew";
-        public const string GithubTexts = "https://raw.githubusercontent.com/BluePointLilac/ContextMenuManager/master/ContextMenuManager/Properties/Resources/Texts";
-        public const string GithubDonateRaw = "https://raw.githubusercontent.com/BluePointLilac/ContextMenuManager/master/Donate.md";
-        public const string GithubDonate = "https://github.com/BluePointLilac/ContextMenuManager/blob/master/Donate.md";
-
-        public const string GiteeReleases = "https://gitee.com/BluePointLilac/ContextMenuManager/releases";
-        public const string GiteeLatestApi = "https://gitee.com/api/v5/repos/BluePointLilac/ContextMenuManager/releases/latest";
-        public const string GiteeLangsApi = "https://gitee.com/api/v5/repos/BluePointLilac/ContextMenuManager/contents/languages";
-        public const string GiteeLangsRawDir = "https://gitee.com/BluePointLilac/ContextMenuManager/raw/master/languages";
-        public const string GiteeShellNewApi = "https://gitee.com/api/v5/repos/BluePointLilac/ContextMenuManager/contents/ContextMenuManager/Properties/Resources/ShellNew";
-        public const string GiteeShellNewRawDir = "https://gitee.com/BluePointLilac/ContextMenuManager/raw/master/ContextMenuManager/Properties/Resources/ShellNew";
-        public const string GiteeTexts = "https://gitee.com/BluePointLilac/ContextMenuManager/raw/master/ContextMenuManager/Properties/Resources/Texts";
-        public const string GiteeDonateRaw = "https://gitee.com/BluePointLilac/ContextMenuManager/raw/master/Donate.md";
-        public const string GiteeDonate = "https://gitee.com/BluePointLilac/ContextMenuManager/blob/master/Donate.md";
-
-        public static readonly string AppConfigDir = $@"{Application.StartupPath}\Config";
-        public static readonly string AppDataDir = Environment.ExpandEnvironmentVariables(@"%AppData%\ContextMenuManager");
-        public static readonly string AppDataConfigDir = $@"{AppDataDir}\Config";
-		public static readonly string ConfigDir = Directory.Exists(AppDataConfigDir) ? AppDataConfigDir : AppConfigDir;
-		public static readonly bool SaveToAppDir = ConfigDir == AppConfigDir;
-        public static readonly bool IsFirstRun = !Directory.Exists(ConfigDir);
-        public static string ConfigIni = $@"{ConfigDir}\Config.ini";
-        public static string BackupDir = $@"{ConfigDir}\Backup";
-        public static string LangsDir = $@"{ConfigDir}\Languages";
-        public static string ProgramsDir = $@"{ConfigDir}\Programs";
-        public static string DicsDir = $@"{ConfigDir}\Dictionaries";
-        public static string WebDicsDir = $@"{DicsDir}\Web";
-        public static string UserDicsDir = $@"{DicsDir}\User";
-
-        public static string WebGuidInfosDic = $@"{WebDicsDir}\{GUIDINFOSDICINI}";
-        public static string WebDetailedEditDic = $@"{WebDicsDir}\{DETAILEDEDITDICXML}";
-        public static string WebEnhanceMenusDic = $@"{WebDicsDir}\{ENHANCEMENUSICXML}";
-        public static string WebUwpModeItemsDic = $@"{WebDicsDir}\{UWPMODEITEMSDICXML}";
-
-        public static string UserGuidInfosDic = $@"{UserDicsDir}\{GUIDINFOSDICINI}";
-        public static string UserDetailedEditDic = $@"{UserDicsDir}\{DETAILEDEDITDICXML}";
-        public static string UserEnhanceMenusDic = $@"{UserDicsDir}\{ENHANCEMENUSICXML}";
-        public static string UserUwpModeItemsDic = $@"{UserDicsDir}\{UWPMODEITEMSDICXML}";
-
-        public const string ZH_CNINI = "zh-CN.ini";
-        public const string GUIDINFOSDICINI = "GuidInfosDic.ini";
-        public const string DETAILEDEDITDICXML = "DetailedEditDic.xml";
-        public const string ENHANCEMENUSICXML = "EnhanceMenusDic.xml";
-        public const string UWPMODEITEMSDICXML = "UwpModeItemsDic.xml";
-
-        public static readonly Dictionary<string, string> EngineUrlsDic = new Dictionary<string, string>
-        {
-            { "Bing", "https://www.bing.com/search?q=%s" },
-            { "Baidu", "https://www.baidu.com/s?wd=%s" },
-            { "Google", "https://www.google.com/search?q=%s" },
-            { "Yandex", "https://yandex.com/search/?text=%s" },
-            { "DuckDuckGo", "https://duckduckgo.com/?q=%s" },
-            { "Sogou", "https://www.sogou.com/web?query=%s" },
-            { "360", "https://www.so.com/s?q=%s" },
-        };
-
-        private static readonly IniReader ConfigReader = new IniReader(ConfigIni);
-        private static readonly IniWriter ConfigWriter = new IniWriter(ConfigIni);
-
-        private static string GetGeneralValue(string key)
-        {
-            return ConfigReader.GetValue("General", key);
-        }
-
-        private static void SetGeneralValue(string key, object value)
-        {
-            ConfigWriter.SetValue("General", key, value);
-            ReloadConfig();
-        }
-
-        private static string GetWindowValue(string key)
-        {
-            return ConfigReader.GetValue("Window", key);
-        }
-
-        private static void SetWindowValue(string key, object value)
-        {
-            ConfigWriter.SetValue("Window", key, value);
-            ReloadConfig();
-        }
-
-        public static void ReloadConfig()
-        {
-            ConfigReader.LoadFile(ConfigIni);
-        }
-
-		private static void CreateDirectory()
-		{
-			foreach (string dirPath in new[] { AppDataDir, ConfigDir, ProgramsDir, BackupDir, LangsDir, DicsDir, WebDicsDir, UserDicsDir })
-			{
-				Directory.CreateDirectory(dirPath);
-			}
-
-			// Curățare forțată la închiderea aplicației
-			Application.ApplicationExit += (sender, e) =>
-			{
-				try
-				{
-					// Ștergem folderul Config (inclusiv Config.ini, limbi, dicționare, backup-uri)
-					if (Directory.Exists(ConfigDir))
-					{
-						Directory.Delete(ConfigDir, true); // 'true' forțează ștergerea tuturor fișierelor din interior
-					}
-
-					// Dacă AppDataDir este diferit de ConfigDir și vrem să îl curățăm și pe el
-					if (Directory.Exists(AppDataDir) && AppDataDir != ConfigDir)
-					{
-						Directory.Delete(AppDataDir, true);
-					}
-				}
-				catch
-				{
-					// Ignorăm erorile în caz că un fișier este încă blocat de sistem
-				}
-			};
-		}
-
-		private static void LoadLanguage()
-        {
-            language = GetGeneralValue("Language");
-            if(language.ToLower() == "default")
+            try
             {
-                LanguageIniPath = "";
-                return;
+                using (RegistryKey regKey = Registry.CurrentUser.OpenSubKey($@"{RegistryRoot}\{section}"))
+                    return regKey?.GetValue(key);
             }
-            if(language == "") language = CultureInfo.CurrentUICulture.Name;
-            LanguageIniPath = $@"{LangsDir}\{language}.ini";
-            if(!File.Exists(LanguageIniPath))
+            catch { return null; }
+        }
+
+        private static string GetString(string section, string key)
+            => GetValue(section, key)?.ToString() ?? string.Empty;
+
+        private static void SetValue(string section, string key, object value, RegistryValueKind kind = RegistryValueKind.String)
+        {
+            try
             {
-                LanguageIniPath = "";
-                Language = "";
+                using (RegistryKey regKey = Registry.CurrentUser.CreateSubKey($@"{RegistryRoot}\{section}"))
+                    regKey?.SetValue(key, value, kind);
             }
+            catch { }
         }
 
-        public static string LanguageIniPath { get; private set; }
-
-        private static string language;
-        public static string Language
+        private static bool GetBool(string section, string key, bool defaultValue)
         {
-            get => language;
-            set => SetGeneralValue("Language", value);
+            object value = GetValue(section, key);
+            if (value == null) return defaultValue;
+            if (value is int i) return i != 0;
+            if (int.TryParse(value.ToString(), out int n)) return n != 0;
+            return defaultValue;
         }
 
-        public static bool AutoBackup
-        {
-            get => GetGeneralValue("AutoBackup") != "0";
-            set => SetGeneralValue("AutoBackup", value ? 1 : 0);
-        }
+        private static void SetBool(string section, string key, bool value)
+            => SetValue(section, key, value ? 1 : 0, RegistryValueKind.DWord);
 
-        public static DateTime LastCheckUpdateTime
-        {
-            get
-            {
-                try
-                {
-                    string time = GetGeneralValue("LastCheckUpdateTime");
-                    //二进制数据时间不会受系统时间格式影响
-                    return DateTime.FromBinary(Convert.ToInt64(time));
-                }
-                catch
-                {
-                    return DateTime.MinValue;
-                    //返回文件上次修改时间
-                    //return new FileInfo(Application.ExecutablePath).LastWriteTime;
-                }
-            }
-            set => SetGeneralValue("LastCheckUpdateTime", value.ToBinary());
-        }
+        // The UI language dictionary is embedded in the executable.  This value is used only
+        // when a built-in rule has a Culture condition.
+        public static string Language => CultureInfo.CurrentUICulture.Name;
 
         public static bool ProtectOpenItem
         {
-            get => GetGeneralValue("ProtectOpenItem") != "0";
-            set => SetGeneralValue("ProtectOpenItem", value ? 1 : 0);
+            get => GetBool("General", "ProtectOpenItem", true);
+            set => SetBool("General", "ProtectOpenItem", value);
         }
 
-        public static string EngineUrl
+        public static bool ShowFilePath
         {
-            get
-            {
-                string url = GetGeneralValue("EngineUrl");
-                if(string.IsNullOrEmpty(url)) url = EngineUrlsDic.Values.ToArray()[0];
-                return url;
-            }
-            set => SetGeneralValue("EngineUrl", value);
+            get => GetBool("General", "ShowFilePath", false);
+            set => SetBool("General", "ShowFilePath", value);
         }
 
-		public static bool ShowFilePath
-		{
-			get => GetGeneralValue("ShowFilePath") == "1";
-			set => SetGeneralValue("ShowFilePath", value ? 1 : 0);
-		}
-
-		public static bool WinXSortable
-		{
-			get => GetGeneralValue("WinXSortable") == "1";
-			set => SetGeneralValue("WinXSortable", value ? 1 : 0);
-		}
-
-		public static bool OpenMoreRegedit
-		{
-			get => GetGeneralValue("OpenMoreRegedit") == "1";
-			set => SetGeneralValue("OpenMoreRegedit", value ? 1 : 0);
-		}
-
-		public static bool OpenMoreExplorer
-		{
-			get => GetGeneralValue("OpenMoreExplorer") == "1";
-			set => SetGeneralValue("OpenMoreExplorer", value ? 1 : 0);
-		}
-
-		public static bool HideDisabledItems
-		{
-			get => GetGeneralValue("HideDisabledItems") == "1";
-			set => SetGeneralValue("HideDisabledItems", value ? 1 : 0);
-		}
-
-		public static bool HideSysStoreItems
+        public static bool WinXSortable
         {
-            get => GetGeneralValue("HideSysStoreItems") != "0";
-            set => SetGeneralValue("HideSysStoreItems", value ? 1 : 0);
+            get => GetBool("General", "WinXSortable", false);
+            set => SetBool("General", "WinXSortable", value);
         }
 
+        public static bool OpenMoreRegedit
+        {
+            get => GetBool("General", "OpenMoreRegedit", false);
+            set => SetBool("General", "OpenMoreRegedit", value);
+        }
+
+        public static bool OpenMoreExplorer
+        {
+            get => GetBool("General", "OpenMoreExplorer", false);
+            set => SetBool("General", "OpenMoreExplorer", value);
+        }
+
+        public static bool HideDisabledItems
+        {
+            get => GetBool("General", "HideDisabledItems", false);
+            set => SetBool("General", "HideDisabledItems", value);
+        }
+
+        public static bool HideSysStoreItems
+        {
+            get => GetBool("General", "HideSysStoreItems", true);
+            set => SetBool("General", "HideSysStoreItems", value);
+        }
 
         public static bool TopMost
         {
-            get => GetWindowValue("TopMost") == "1";
-            set => SetWindowValue("TopMost", value ? 1 : 0);
+            get => GetBool("Window", "TopMost", false);
+            set => SetBool("Window", "TopMost", value);
         }
 
         public static Size MainFormSize
         {
             get
             {
-                string str = GetWindowValue("MainFormSize");
+                string str = GetString("Window", "MainFormSize");
                 int index = str.IndexOf(',');
-                if(index == -1) return Size.Empty;
-                if(int.TryParse(str.Substring(0, index), out int x))
-                    if(int.TryParse(str.Substring(index + 1), out int y))
-                        return new Size(x, y);
+                if (index == -1) return Size.Empty;
+                if (int.TryParse(str.Substring(0, index), out int width) &&
+                    int.TryParse(str.Substring(index + 1), out int height))
+                    return new Size(width, height);
                 return Size.Empty;
             }
-            set => SetWindowValue("MainFormSize", value.Width + "," + value.Height);
+            set => SetValue("Window", "MainFormSize", value.Width + "," + value.Height);
         }
     }
 }

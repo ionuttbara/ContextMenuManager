@@ -13,12 +13,10 @@ namespace BluePointLilac.Controls
             this.Height = 80.DpiZoom();
             this.Dock = DockStyle.Top;
             this.DoubleBuffered = true;
-            this.BackColor = Color.FromArgb(85, 145, 215);
-			bool isDark = ThemeManager.IsDarkMode();
-
-			this.BackColor = isDark ? Color.FromArgb(40, 40, 40) : Color.FromArgb(245, 245, 245);
-			this.ForeColor = isDark ? Color.White : Color.FromArgb(80, 80, 80);
-		}
+            bool isDark = ThemeManager.IsDarkMode();
+            this.BackColor = isDark ? Color.FromArgb(40, 40, 40) : Color.FromArgb(245, 245, 245);
+            this.ForeColor = isDark ? Color.White : Color.FromArgb(55, 55, 55);
+        }
 
         private MyToolBarButton selectedButton;
         public MyToolBarButton SelectedButton
@@ -99,6 +97,7 @@ namespace BluePointLilac.Controls
             picImage.Top = 6.DpiZoom();
             lblText.Top = 52.DpiZoom();
             lblText.SetEnabled(false);
+            lblText.ForeColor = ThemeManager.IsDarkMode() ? Color.White : Color.FromArgb(55, 55, 55);
             this.Image = image;
             this.Text = text;
             this.ResumeLayout();
@@ -132,8 +131,12 @@ namespace BluePointLilac.Controls
         }
         public float Opacity
         {
-            get => BackColor.A / 255;
-            set => BackColor = Color.FromArgb((int)(value * 255), Color.White);
+            get => BackColor.A / 255f;
+            set
+            {
+                Color accent = ThemeManager.GetSystemAccentColor();
+                BackColor = Color.FromArgb((int)(value * 255), accent);
+            }
         }
         public bool CanBeSelected { get; set; } = true;
 
