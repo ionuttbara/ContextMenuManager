@@ -76,7 +76,7 @@ namespace ContextMenuManager.Controls
                 }
                 if (this.ChkVisible != null)
                 {
-                    this.ChkVisible.Checked = value;
+                    this.ChkVisible.Checked = this.ItemVisible;
                 }
             }
         }
@@ -92,6 +92,27 @@ namespace ContextMenuManager.Controls
 
             this.ChkVisible = new VisibleCheckBox(this);
             this.ChkVisible.Checked = this.ItemVisible;
+
+            if (string.Equals(preset.Id, "FolderColorizer", System.StringComparison.OrdinalIgnoreCase))
+            {
+                Button btnManage = new Button
+                {
+                    Text = UiLanguage.Text("FolderColorizerManagePackages"),
+                    Image = Properties.Resources.Setting,
+                    AutoSize = true,
+                    TextImageRelation = TextImageRelation.ImageBeforeText,
+                    Padding = new Padding(4, 1, 4, 1),
+                    UseVisualStyleBackColor = false
+                };
+                ThemeManager.ApplyTheme(btnManage);
+                btnManage.Click += (s, e) =>
+                {
+                    using (FolderColorizerManagerForm form = new FolderColorizerManagerForm())
+                        form.ShowDialog(this.FindForm());
+                    this.ChkVisible.Checked = this.ItemVisible;
+                };
+                this.AddCtr(btnManage);
+            }
 
             InitContextMenu();
         }
@@ -121,6 +142,18 @@ namespace ContextMenuManager.Controls
                 this.ItemVisible = false;
             };
 
+            if (Preset != null && string.Equals(Preset.Id, "FolderColorizer", System.StringComparison.OrdinalIgnoreCase))
+            {
+                ToolStripMenuItem managePackages = new ToolStripMenuItem(UiLanguage.Text("FolderColorizerManagePackages"));
+                managePackages.Image = Properties.Resources.Setting;
+                managePackages.Click += (s, e) =>
+                {
+                    using (FolderColorizerManagerForm form = new FolderColorizerManagerForm())
+                        form.ShowDialog(this.FindForm());
+                };
+                cms.Items.Add(managePackages);
+                cms.Items.Add(new ToolStripSeparator());
+            }
             cms.Items.Add(itemAdd);
             cms.Items.Add(itemRemove);
 

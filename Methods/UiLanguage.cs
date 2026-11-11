@@ -49,7 +49,9 @@ namespace ContextMenuManager.Methods
 
         private static readonly Dictionary<string, string> EnglishUi = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
+            ["FolderManagement"] = "Folder Management", ["FolderProfiles"] = "Managed folders and profiles", ["FolderProfilesInfo"] = "Create, import, export, install and remove custom Explorer folders.",
             ["CurrentItems"] = "Current Items", ["AddCustomItems"] = "Add Custom Items", ["RemoveDefaultMenus"] = "Remove Default Menus",
+            ["EnableFileLocksmithContextMenu"] = "Enable File Locksmith context menu (files and folders)",
             ["MicrosoftStoreApps"] = "Microsoft Store Apps", ["Terminal"] = "Terminal", ["AllItems"] = "All Items", ["Media"] = "Media", ["System"] = "System",
             ["BulkActions"] = "Bulk actions", ["AddAll"] = "Add all", ["RemoveAll"] = "Remove all", ["RestoreAll"] = "Restore all",
             ["AddToRegistry"] = "Add to registry", ["ReAddToRegistry"] = "Re-add to registry", ["RemoveFromRegistry"] = "Remove from registry", ["RestoreToRegistry"] = "Restore to registry",
@@ -59,12 +61,24 @@ namespace ContextMenuManager.Methods
             ["InfoSystemRemoval"] = "Default system and security menus", ["StoreAppsInfo"] = "Packaged apps that add Windows context menu commands",
             ["TerminalInfo"] = "Configure Open in Terminal commands and Windows Terminal profiles",
             ["AboutProject"] = "About this project", ["Repository"] = "Repository & documentation", ["TechnicalDetails"] = "Technical details", ["KeyFeatures"] = "Key features",
-            ["WinXRepair"] = "Repair Win+X metadata", ["WinXRepairTip"] = "Rebuild Win+X shortcut metadata and refresh Explorer", ["WinXRepairDone"] = "Win+X metadata repaired: {0} shortcuts updated, {1} failed."
+            ["WinXRepair"] = "Repair Win+X metadata", ["WinXRepairTip"] = "Rebuild Win+X shortcut metadata and refresh Explorer", ["WinXRepairDone"] = "Win+X metadata repaired: {0} shortcuts updated, {1} failed.",
+            ["FolderColorizerMenu"] = "Mark folder as...", ["FolderColorizerReset"] = "Restore default folder icon", ["FolderColorizerManagePackages"] = "Edit folder icons...",
+            ["FolderColorizerCategories"] = "Folder Colorizer categories", ["FolderColorizerRestoreMark"] = "Restore Mark defaults",
+            ["FolderColorizerReplaceIcon"] = "Replace icon...", ["FolderColorizerEditable"] = "editable", ["FolderColorizerReadOnly"] = "read-only",
+            ["FolderColorizerConfirmRestore"] = "Restore the original Mark folder as icons and discard the edits? Previous custom package folders are kept as backups.",
+            ["FolderColorizerPackages"] = "Folder Colorizer packages", ["FolderColorizerNewPackage"] = "New package", ["FolderColorizerImportPackage"] = "Import package folder...",
+            ["FolderColorizerRename"] = "Rename", ["FolderColorizerDeletePackage"] = "Delete package", ["FolderColorizerAddIcons"] = "Add icons...", ["FolderColorizerDeleteIcon"] = "Delete icon",
+            ["FolderColorizerRefreshMenu"] = "Refresh context menu", ["FolderColorizerClose"] = "Close", ["FolderColorizerBuiltInNote"] = "Only Mark folder as can be edited. No additional package menus are installed.",
+            ["FolderColorizerIconsCount"] = "icons", ["FolderColorizerBuiltIn"] = "built-in", ["FolderColorizerCustomPackage"] = "My folder package", ["FolderColorizerSelectPackageFolder"] = "Select a folder containing .ico files. 00.ico is used as the package icon.",
+            ["FolderColorizerConfirmDeletePackage"] = "Delete package '{0}' and all of its icons?", ["FolderColorizerConfirmDeleteIcon"] = "Delete icon '{0}'?", ["FolderColorizerRefreshed"] = "The Folder Colorizer context menu was refreshed.",
+            ["FolderColorizerBuiltInProtected"] = "Built-in Folder Colorizer packages cannot be modified or deleted.", ["FolderColorizerIconMissing"] = "The selected Folder Colorizer icon is missing or invalid."
         };
 
         private static readonly Dictionary<string, string> RomanianUi = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
+            ["FolderManagement"] = "Administrare foldere", ["FolderProfiles"] = "Foldere și profiluri", ["FolderProfilesInfo"] = "Creează, importă, exportă, instalează și elimină foldere Explorer personalizate.",
             ["CurrentItems"] = "Elemente curente", ["AddCustomItems"] = "Adăugare elemente", ["RemoveDefaultMenus"] = "Eliminare meniuri implicite",
+            ["EnableFileLocksmithContextMenu"] = "Activează meniul contextual File Locksmith (fișiere și foldere)",
             ["MicrosoftStoreApps"] = "Aplicații Microsoft Store", ["Terminal"] = "Terminal", ["AllItems"] = "Toate elementele", ["Media"] = "Media", ["System"] = "Sistem",
             ["BulkActions"] = "Acțiuni în masă", ["AddAll"] = "Adaugă toate", ["RemoveAll"] = "Elimină toate", ["RestoreAll"] = "Restaurează toate",
             ["AddToRegistry"] = "Adaugă în registry", ["ReAddToRegistry"] = "Adaugă din nou în registry", ["RemoveFromRegistry"] = "Elimină din registry", ["RestoreToRegistry"] = "Restaurează în registry",
@@ -74,12 +88,24 @@ namespace ContextMenuManager.Methods
             ["InfoSystemRemoval"] = "Meniuri implicite de sistem și securitate", ["StoreAppsInfo"] = "Aplicații împachetate care adaugă comenzi în meniul contextual Windows",
             ["TerminalInfo"] = "Configurează comenzile Deschide în Terminal și profilurile Windows Terminal",
             ["AboutProject"] = "Despre proiect", ["Repository"] = "Repository și documentație", ["TechnicalDetails"] = "Detalii tehnice", ["KeyFeatures"] = "Funcții principale",
-            ["WinXRepair"] = "Repară Win+X", ["WinXRepairTip"] = "Reface metadatele scurtăturilor Win+X și reîncarcă Explorer", ["WinXRepairDone"] = "Metadatele Win+X au fost reparate: {0} scurtături actualizate, {1} eșuate."
+            ["WinXRepair"] = "Repară Win+X", ["WinXRepairTip"] = "Reface metadatele scurtăturilor Win+X și reîncarcă Explorer", ["WinXRepairDone"] = "Metadatele Win+X au fost reparate: {0} scurtături actualizate, {1} eșuate.",
+            ["FolderColorizerMenu"] = "Marchează acest folder", ["FolderColorizerReset"] = "Restaurează iconița implicită", ["FolderColorizerManagePackages"] = "Editează iconițele...",
+            ["FolderColorizerCategories"] = "Categorii Folder Colorizer", ["FolderColorizerRestoreMark"] = "Restabilește Mark",
+            ["FolderColorizerReplaceIcon"] = "Înlocuiește iconița...", ["FolderColorizerEditable"] = "editabil", ["FolderColorizerReadOnly"] = "doar citire",
+            ["FolderColorizerConfirmRestore"] = "Restaurezi iconițele inițiale din Mark folder as și renunți la modificări? Folderele pachetelor vechi sunt păstrate ca backup.",
+            ["FolderColorizerPackages"] = "Pachete Folder Colorizer", ["FolderColorizerNewPackage"] = "Pachet nou", ["FolderColorizerImportPackage"] = "Importă folder de pachet...",
+            ["FolderColorizerRename"] = "Redenumește", ["FolderColorizerDeletePackage"] = "Șterge pachetul", ["FolderColorizerAddIcons"] = "Adaugă iconițe...", ["FolderColorizerDeleteIcon"] = "Șterge iconița",
+            ["FolderColorizerRefreshMenu"] = "Reîmprospătează meniul contextual", ["FolderColorizerClose"] = "Închide", ["FolderColorizerBuiltInNote"] = "Doar Mark folder as poate fi editat. Nu se instalează pachete suplimentare.",
+            ["FolderColorizerIconsCount"] = "iconițe", ["FolderColorizerBuiltIn"] = "integrat", ["FolderColorizerCustomPackage"] = "Pachetul meu", ["FolderColorizerSelectPackageFolder"] = "Selectează un folder cu fișiere .ico. 00.ico este folosit ca iconiță a pachetului.",
+            ["FolderColorizerConfirmDeletePackage"] = "Ștergi pachetul '{0}' și toate iconițele lui?", ["FolderColorizerConfirmDeleteIcon"] = "Ștergi iconița '{0}'?", ["FolderColorizerRefreshed"] = "Meniul contextual Folder Colorizer a fost actualizat.",
+            ["FolderColorizerBuiltInProtected"] = "Pachetele Folder Colorizer integrate nu pot fi modificate sau șterse.", ["FolderColorizerIconMissing"] = "Iconița Folder Colorizer selectată lipsește sau este invalidă."
         };
 
         private static readonly Dictionary<string, string> SpanishUi = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
+            ["FolderManagement"] = "Gestión de carpetas", ["FolderProfiles"] = "Carpetas y perfiles", ["FolderProfilesInfo"] = "Crear, importar, exportar, instalar y quitar carpetas personalizadas de Explorer.",
             ["CurrentItems"] = "Elementos actuales", ["AddCustomItems"] = "Añadir elementos", ["RemoveDefaultMenus"] = "Quitar menús predeterminados",
+            ["EnableFileLocksmithContextMenu"] = "Activar el menú contextual File Locksmith (archivos y carpetas)",
             ["MicrosoftStoreApps"] = "Aplicaciones de Microsoft Store", ["Terminal"] = "Terminal", ["AllItems"] = "Todos los elementos", ["Media"] = "Multimedia", ["System"] = "Sistema",
             ["BulkActions"] = "Acciones en bloque", ["AddAll"] = "Añadir todo", ["RemoveAll"] = "Quitar todo", ["RestoreAll"] = "Restaurar todo",
             ["AddToRegistry"] = "Añadir al registro", ["ReAddToRegistry"] = "Volver a añadir al registro", ["RemoveFromRegistry"] = "Quitar del registro", ["RestoreToRegistry"] = "Restaurar en el registro",
@@ -89,12 +115,24 @@ namespace ContextMenuManager.Methods
             ["InfoSystemRemoval"] = "Menús predeterminados del sistema y seguridad", ["StoreAppsInfo"] = "Aplicaciones empaquetadas que añaden comandos al menú contextual de Windows",
             ["TerminalInfo"] = "Configurar comandos Abrir en Terminal y perfiles de Windows Terminal",
             ["AboutProject"] = "Acerca del proyecto", ["Repository"] = "Repositorio y documentación", ["TechnicalDetails"] = "Detalles técnicos", ["KeyFeatures"] = "Funciones principales",
-            ["WinXRepair"] = "Reparar Win+X", ["WinXRepairTip"] = "Reconstruye los metadatos de los accesos directos Win+X y actualiza Explorer", ["WinXRepairDone"] = "Metadatos Win+X reparados: {0} accesos actualizados, {1} fallidos."
+            ["WinXRepair"] = "Reparar Win+X", ["WinXRepairTip"] = "Reconstruye los metadatos de los accesos directos Win+X y actualiza Explorer", ["WinXRepairDone"] = "Metadatos Win+X reparados: {0} accesos actualizados, {1} fallidos.",
+            ["FolderColorizerMenu"] = "Marcar esta carpeta", ["FolderColorizerReset"] = "Restaurar icono predeterminado", ["FolderColorizerManagePackages"] = "Editar iconos...",
+            ["FolderColorizerCategories"] = "Categorías de Folder Colorizer", ["FolderColorizerRestoreMark"] = "Restaurar Mark",
+            ["FolderColorizerReplaceIcon"] = "Reemplazar icono...", ["FolderColorizerEditable"] = "editable", ["FolderColorizerReadOnly"] = "solo lectura",
+            ["FolderColorizerConfirmRestore"] = "¿Restaurar los iconos originales y descartar los cambios? Las carpetas antiguas se conservan.",
+            ["FolderColorizerPackages"] = "Paquetes Folder Colorizer", ["FolderColorizerNewPackage"] = "Nuevo paquete", ["FolderColorizerImportPackage"] = "Importar carpeta de paquete...",
+            ["FolderColorizerRename"] = "Renombrar", ["FolderColorizerDeletePackage"] = "Eliminar paquete", ["FolderColorizerAddIcons"] = "Añadir iconos...", ["FolderColorizerDeleteIcon"] = "Eliminar icono",
+            ["FolderColorizerRefreshMenu"] = "Actualizar menú contextual", ["FolderColorizerClose"] = "Cerrar", ["FolderColorizerBuiltInNote"] = "Solo Mark folder as es editable. No hay menús de paquetes adicionales.",
+            ["FolderColorizerIconsCount"] = "iconos", ["FolderColorizerBuiltIn"] = "integrado", ["FolderColorizerCustomPackage"] = "Mi paquete", ["FolderColorizerSelectPackageFolder"] = "Selecciona una carpeta con archivos .ico. 00.ico se usa como icono del paquete.",
+            ["FolderColorizerConfirmDeletePackage"] = "¿Eliminar el paquete '{0}' y todos sus iconos?", ["FolderColorizerConfirmDeleteIcon"] = "¿Eliminar el icono '{0}'?", ["FolderColorizerRefreshed"] = "El menú contextual Folder Colorizer se actualizó.",
+            ["FolderColorizerBuiltInProtected"] = "Los paquetes integrados de Folder Colorizer no se pueden modificar ni eliminar.", ["FolderColorizerIconMissing"] = "El icono seleccionado de Folder Colorizer falta o no es válido."
         };
 
         private static readonly Dictionary<string, string> HungarianUi = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
+            ["FolderManagement"] = "Mappakezelés", ["FolderProfiles"] = "Mappák és profilok", ["FolderProfilesInfo"] = "Egyéni Explorer-mappák létrehozása, importálása, exportálása, telepítése és eltávolítása.",
             ["CurrentItems"] = "Jelenlegi elemek", ["AddCustomItems"] = "Egyéni elemek hozzáadása", ["RemoveDefaultMenus"] = "Alapértelmezett menük eltávolítása",
+            ["EnableFileLocksmithContextMenu"] = "File Locksmith helyi menü engedélyezése (fájlok és mappák)",
             ["MicrosoftStoreApps"] = "Microsoft Store alkalmazások", ["Terminal"] = "Terminál", ["AllItems"] = "Összes elem", ["Media"] = "Média", ["System"] = "Rendszer",
             ["BulkActions"] = "Csoportos műveletek", ["AddAll"] = "Összes hozzáadása", ["RemoveAll"] = "Összes eltávolítása", ["RestoreAll"] = "Összes visszaállítása",
             ["AddToRegistry"] = "Hozzáadás a rendszerleíró adatbázishoz", ["ReAddToRegistry"] = "Újbóli hozzáadás a rendszerleíró adatbázishoz", ["RemoveFromRegistry"] = "Eltávolítás a rendszerleíró adatbázisból", ["RestoreToRegistry"] = "Visszaállítás a rendszerleíró adatbázisba",
@@ -104,7 +142,17 @@ namespace ContextMenuManager.Methods
             ["InfoSystemRemoval"] = "Rendszer- és biztonsági alapértelmezett menük", ["StoreAppsInfo"] = "Csomagolt alkalmazások, amelyek Windows helyi menüparancsokat adnak hozzá",
             ["TerminalInfo"] = "A Megnyitás terminálban parancsok és a Windows Terminal profilok beállítása",
             ["AboutProject"] = "A projektről", ["Repository"] = "Forráskód és dokumentáció", ["TechnicalDetails"] = "Technikai részletek", ["KeyFeatures"] = "Fő funkciók",
-            ["WinXRepair"] = "Win+X javítása", ["WinXRepairTip"] = "Újraépíti a Win+X parancsikonok metaadatait és frissíti az Explorert", ["WinXRepairDone"] = "Win+X metaadatok javítva: {0} parancsikon frissítve, {1} sikertelen."
+            ["WinXRepair"] = "Win+X javítása", ["WinXRepairTip"] = "Újraépíti a Win+X parancsikonok metaadatait és frissíti az Explorert", ["WinXRepairDone"] = "Win+X metaadatok javítva: {0} parancsikon frissítve, {1} sikertelen.",
+            ["FolderColorizerMenu"] = "Mappa megjelölése", ["FolderColorizerReset"] = "Alapértelmezett mappaikon visszaállítása", ["FolderColorizerManagePackages"] = "Mappaikonok szerkesztése...",
+            ["FolderColorizerCategories"] = "Folder Colorizer kategóriák", ["FolderColorizerRestoreMark"] = "Mark visszaállítása",
+            ["FolderColorizerReplaceIcon"] = "Ikon cseréje...", ["FolderColorizerEditable"] = "szerkeszthető", ["FolderColorizerReadOnly"] = "csak olvasható",
+            ["FolderColorizerConfirmRestore"] = "Visszaállítod az eredeti ikonokat és elveted a módosításokat? A régi csomagok biztonsági másolatként megmaradnak.",
+            ["FolderColorizerPackages"] = "Folder Colorizer csomagok", ["FolderColorizerNewPackage"] = "Új csomag", ["FolderColorizerImportPackage"] = "Csomagmappa importálása...",
+            ["FolderColorizerRename"] = "Átnevezés", ["FolderColorizerDeletePackage"] = "Csomag törlése", ["FolderColorizerAddIcons"] = "Ikonok hozzáadása...", ["FolderColorizerDeleteIcon"] = "Ikon törlése",
+            ["FolderColorizerRefreshMenu"] = "Helyi menü frissítése", ["FolderColorizerClose"] = "Bezárás", ["FolderColorizerBuiltInNote"] = "Csak a Mark folder as szerkeszthető. Nincsenek új csomagmenük.",
+            ["FolderColorizerIconsCount"] = "ikon", ["FolderColorizerBuiltIn"] = "beépített", ["FolderColorizerCustomPackage"] = "Saját csomag", ["FolderColorizerSelectPackageFolder"] = "Válassz .ico fájlokat tartalmazó mappát. A 00.ico lesz a csomag ikonja.",
+            ["FolderColorizerConfirmDeletePackage"] = "Törlöd a(z) '{0}' csomagot és minden ikonját?", ["FolderColorizerConfirmDeleteIcon"] = "Törlöd a(z) '{0}' ikont?", ["FolderColorizerRefreshed"] = "A Folder Colorizer helyi menü frissült.",
+            ["FolderColorizerBuiltInProtected"] = "A beépített Folder Colorizer csomagok nem módosíthatók és nem törölhetők.", ["FolderColorizerIconMissing"] = "A kiválasztott Folder Colorizer ikon hiányzik vagy érvénytelen."
         };
 
         private static readonly Dictionary<string, string> Romanian = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)

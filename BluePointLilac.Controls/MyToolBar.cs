@@ -1,7 +1,8 @@
-﻿using BluePointLilac.Methods;
+using BluePointLilac.Methods;
 using ContextMenuManager.BluePointLilac.Methods;
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace BluePointLilac.Controls
@@ -10,7 +11,9 @@ namespace BluePointLilac.Controls
     {
         public MyToolBar()
         {
-            this.Height = 80.DpiZoom();
+            this.Height = 91.DpiZoom();
+            this.WrapContents = false;
+            this.AutoScroll = true; // All six tabs remain reachable on narrow Windows / larger text settings.
             this.Dock = DockStyle.Top;
             this.DoubleBuffered = true;
             bool isDark = ThemeManager.IsDarkMode();
@@ -78,8 +81,10 @@ namespace BluePointLilac.Controls
 
         public void AddButtons(MyToolBarButton[] buttons)
         {
-            int maxWidth = 72.DpiZoom();
-            Array.ForEach(buttons, button => maxWidth = Math.Max(maxWidth, TextRenderer.MeasureText(button.Text, button.Font).Width));
+            int maxWidth = 124.DpiZoom();
+            // Multiline captions prevent one long localization from making all six tabs too wide.
+            Array.ForEach(buttons, button => maxWidth = Math.Max(maxWidth, Math.Min(124.DpiZoom(),
+                button.Text.Split('\n').Max(line => TextRenderer.MeasureText(line, button.Font).Width + 10.DpiZoom()))));
             Array.ForEach(buttons, button => { button.Width = maxWidth; AddButton(button); });
         }
     }
@@ -91,11 +96,14 @@ namespace BluePointLilac.Controls
             this.SuspendLayout();
             this.DoubleBuffered = true;
             this.Cursor = Cursors.Hand;
-            this.Size = new Size(72, 72).DpiZoom();
+            this.Size = new Size(72, 81).DpiZoom();
             this.Controls.AddRange(new Control[] { picImage, lblText });
             lblText.Resize += (sender, e) => this.OnResize(null);
-            picImage.Top = 6.DpiZoom();
-            lblText.Top = 52.DpiZoom();
+            picImage.Top = 4.DpiZoom();
+            lblText.Top = 42.DpiZoom();
+            lblText.Width = 116.DpiZoom();
+            lblText.Height = 36.DpiZoom();
+            lblText.TextAlign = ContentAlignment.TopCenter;
             lblText.SetEnabled(false);
             lblText.ForeColor = ThemeManager.IsDarkMode() ? Color.White : Color.FromArgb(55, 55, 55);
             this.Image = image;
@@ -106,7 +114,7 @@ namespace BluePointLilac.Controls
         readonly PictureBox picImage = new PictureBox
         {
             SizeMode = PictureBoxSizeMode.StretchImage,
-            Size = new Size(40, 40).DpiZoom(),
+            Size = new Size(34, 34).DpiZoom(),
             BackColor = Color.Transparent,
             Enabled = false
         };
@@ -116,7 +124,7 @@ namespace BluePointLilac.Controls
             BackColor = Color.Transparent,
             Font = SystemFonts.MenuFont,
             ForeColor = Color.White,
-            AutoSize = true,
+            AutoSize = false,
         };
 
         public Image Image

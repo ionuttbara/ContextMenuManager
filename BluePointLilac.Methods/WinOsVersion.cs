@@ -27,11 +27,16 @@ namespace BluePointLilac.Methods
         public static readonly Version Win10_20H2 = new Version(10, 0, 19042);
 		public static readonly Version Win10_21H2 = new Version(10, 0, 19043);
 		public static readonly Version Win10_22H2 = new Version(10, 0, 19045);
-		public static readonly Version Win11_21H2 = new Version(10, 0, 20000);
+		public static readonly Version Win11_21H2 = new Version(10, 0, 22000);
 		public static readonly Version Win11_22H2 = new Version(10, 0, 22621);
 		public static readonly Version Win11_23H2 = new Version(10, 0, 22631);
 		public static readonly Version Win11_24H2 = new Version(10, 0, 26100);
 		public static readonly Version Win11_25H2 = new Version(10, 0, 26120);
 		public static readonly Version Win11_26H1 = new Version(10, 0, 28000);
+
+        /// <summary>Windows 11 starts at build 22000. Kept as a build check so the UI can
+        /// hide legacy Win+X editing that no longer applies to the Windows 11 menu.</summary>
+        public static bool IsWindows11OrLater =>
+            Current.Major > 10 || (Current.Major == 10 && Current.Build >= 22000);
 	}
 }

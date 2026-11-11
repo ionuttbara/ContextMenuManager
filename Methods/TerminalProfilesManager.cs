@@ -1,4 +1,4 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -340,38 +340,57 @@ namespace ContextMenuManager.Methods
 
         public static void SetTerminalBlocked(bool block)
         {
+            const string backupId = "TerminalProfilesLegacyCleanup";
+            const string blockValueBackupId = "TerminalBlockListValue";
+            const string blockedClsid = "{9F156763-7844-4DC4-B2B1-901F640F5155}";
+            string blockedPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked";
+            var blockedValueTarget = new RegistryBackupValueTarget("HKLM", blockedPath, blockedClsid);
+
             if (block)
             {
-                using (var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked", RegistryKeyPermissionCheck.ReadWriteSubTree))
+                // Match TerminalBehaivofMelodyMenu.reg, but snapshot the original keys before removing them.
+                var targets = new[]
                 {
-                    key?.SetValue("{9F156763-7844-4DC4-B2B1-901F640F5155}", "");
-                }
-
-                string[] cleanups = new[]
-                {
-                    @"Directory\shell\cmd",
-                    @"Directory\shell\Powershell",
-                    @"Directory\shell\WSL",
-                    @"Directory\Background\shell\OpenWindowsTerminalProfiles",
-                    @"Directory\Background\shell\Powershell",
-                    @"Directory\Background\shell\WSL",
-                    @"Drive\shell\cmd",
-                    @"Drive\shell\Powershell",
-                    @"Drive\shell\WSL"
+                    new RegistryBackupTarget("HKCR", @"Directory\shell\cmd"),
+                    new RegistryBackupTarget("HKCR", @"Directory\shell\Powershell"),
+                    new RegistryBackupTarget("HKCR", @"Directory\shell\WSL"),
+                    new RegistryBackupTarget("HKCR", @"Directory\Background\shell\OpenWindowsTerminalProfiles"),
+                    new RegistryBackupTarget("HKCR", @"Directory\Background\shell\Powershell"),
+                    new RegistryBackupTarget("HKCR", @"Directory\Background\shell\WSL"),
+                    new RegistryBackupTarget("HKCR", @"Drive\shell\cmd"),
+                    new RegistryBackupTarget("HKCR", @"Drive\shell\Powershell"),
+                    new RegistryBackupTarget("HKCR", @"Drive\shell\WSL")
                 };
-                foreach (var c in cleanups)
+
+                try
                 {
-                    try { Registry.ClassesRoot.DeleteSubKeyTree(c, false); } catch { }
+                    RegistryTreeBackupManager.DeleteWithBackup(backupId, targets);
+                    // Save any pre-existing block-list value, so this toggle can restore it exactly.
+                    RegistryValueBackupManager.SetValueWithBackup(blockValueBackupId, blockedValueTarget,
+                        string.Empty, RegistryValueKind.String);
+                }
+                catch
+                {
+                    // If enabling failed, roll back both the legacy entries and the block-list value where possible.
+                    try { RegistryTreeBackupManager.Restore(backupId); } catch { }
+                    try { RegistryValueBackupManager.Restore(blockValueBackupId); } catch { }
                 }
             }
             else
             {
                 try
                 {
-                    using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked", true))
+                    // If this app previously changed the value, restore its original type/value.
+                    // If the extension was blocked externally and there is no snapshot, honor the user's request to unblock it.
+                    if (RegistryValueBackupManager.HasBackup(blockValueBackupId))
+                        RegistryValueBackupManager.Restore(blockValueBackupId);
+                    else
                     {
-                        key?.DeleteValue("{9F156763-7844-4DC4-B2B1-901F640F5155}", false);
+                        using (var key = Registry.LocalMachine.OpenSubKey(blockedPath, true))
+                            key?.DeleteValue(blockedClsid, false);
                     }
+                    // Restores the exact legacy CMD / PowerShell / WSL entries that were removed by this toggle.
+                    RegistryTreeBackupManager.Restore(backupId);
                 }
                 catch { }
             }

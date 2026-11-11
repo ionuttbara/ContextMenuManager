@@ -22,6 +22,7 @@ namespace ContextMenuManager.Controls
             mliOpenMoreExplorer.AddCtr(chkOpenMoreExplorer);
             mliHideDisabledItems.AddCtr(chkHideDisabledItems);
             mliHideSysStoreItems.AddCtr(chkHideSysStoreItems);
+            mliFileLocksmith.AddCtr(chkFileLocksmith);
 
             chkProtect.CheckChanged += () => AppConfig.ProtectOpenItem = chkProtect.Checked;
             chkWinXSortable.CheckChanged += () => AppConfig.WinXSortable = chkWinXSortable.Checked;
@@ -31,6 +32,11 @@ namespace ContextMenuManager.Controls
             chkHideDisabledItems.CheckChanged += () => AppConfig.HideDisabledItems = chkHideDisabledItems.Checked;
             chkHideSysStoreItems.CheckChanged += () => AppConfig.HideSysStoreItems = chkHideSysStoreItems.Checked;
             chkShowFilePath.CheckChanged += () => AppConfig.ShowFilePath = chkShowFilePath.Checked;
+            chkFileLocksmith.CheckChanged += () =>
+            {
+                if (chkFileLocksmith.Checked) FileLocksmithManager.InstallContextMenu();
+                else FileLocksmithManager.UninstallContextMenu();
+            };
 
             this.ResumeLayout();
             ThemeManager.ApplyTheme(this);
@@ -57,7 +63,7 @@ namespace ContextMenuManager.Controls
         readonly MyListItem mliWinXSortable = new MyListItem
         {
             Text = AppString.Other.WinXSortable,
-            Visible = WinOsVersion.Current >= WinOsVersion.Win8
+            Visible = WinOsVersion.Current >= WinOsVersion.Win8 && !WinOsVersion.IsWindows11OrLater
         };
         readonly MyCheckBox chkWinXSortable = new MyCheckBox();
 
@@ -67,6 +73,12 @@ namespace ContextMenuManager.Controls
             Visible = WinOsVersion.Current >= WinOsVersion.Win7
         };
         readonly MyCheckBox chkHideSysStoreItems = new MyCheckBox();
+
+        readonly MyListItem mliFileLocksmith = new MyListItem
+        {
+            Text = UiLanguage.Text("EnableFileLocksmithContextMenu")
+        };
+        readonly MyCheckBox chkFileLocksmith = new MyCheckBox();
 
         public override void ClearItems()
         {
@@ -78,7 +90,7 @@ namespace ContextMenuManager.Controls
             this.AddItems(new[]
             {
                 mliTopMost, mliProtect, mliShowFilePath, mliHideDisabledItems,
-                mliHideSysStoreItems, mliOpenMoreRegedit, mliOpenMoreExplorer, mliWinXSortable
+                mliHideSysStoreItems, mliFileLocksmith, mliOpenMoreRegedit, mliOpenMoreExplorer, mliWinXSortable
             });
             foreach (MyListItem item in this.Controls) item.HasImage = false;
 
@@ -90,6 +102,7 @@ namespace ContextMenuManager.Controls
             chkOpenMoreExplorer.Checked = AppConfig.OpenMoreExplorer;
             chkHideDisabledItems.Checked = AppConfig.HideDisabledItems;
             chkHideSysStoreItems.Checked = AppConfig.HideSysStoreItems;
+            chkFileLocksmith.Checked = FileLocksmithManager.IsContextMenuInstalled();
         }
     }
 }

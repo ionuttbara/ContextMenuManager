@@ -86,6 +86,7 @@ namespace ContextMenuManager.Controls
 
         private void SetAll(bool install)
         {
+            List<string> failures = new List<string>();
             foreach (CustomPreset preset in CustomPresetsManager.GetPresetsByCategory(currentCategory))
             {
                 try
@@ -93,9 +94,17 @@ namespace ContextMenuManager.Controls
                     if (install) preset.Install();
                     else preset.Uninstall();
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    failures.Add(preset.Name + ": " + ex.Message);
+                    if (preset.Id == "FolderColorizer")
+                        FolderColorizerManager.LogInstallFailure(install ? "Bulk install" : "Bulk remove", ex);
+                }
             }
             this.BeginInvoke(new Action(LoadItems));
+            if (failures.Count != 0)
+                MessageBox.Show(string.Join("\n\n", failures), AppString.General.AppName,
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 }

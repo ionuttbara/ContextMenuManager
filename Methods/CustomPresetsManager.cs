@@ -91,7 +91,12 @@ namespace ContextMenuManager.Methods
         public CustomPresetParent ParentMenu { get; set; }
         public string RootKeyPath { get; set; }
         public List<RegistryKeyEntry> Entries { get; set; } = new List<RegistryKeyEntry>();
+        // Entries for sibling file classes, where one preset intentionally supports multiple extensions.
+        public List<RegistryKeyEntry> AdditionalInstallEntries { get; } = new List<RegistryKeyEntry>();
         public List<string> AdditionalDeletePaths { get; } = new List<string>();
+        public Func<bool> IsActiveOverride { get; set; }
+        public Action InstallOverride { get; set; }
+        public Action UninstallOverride { get; set; }
 
         private static string ResolvePath(string rootPath, string subPath)
         {
@@ -114,6 +119,7 @@ namespace ContextMenuManager.Methods
 
         public bool IsActive()
         {
+            if (IsActiveOverride != null) return IsActiveOverride();
             using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(RootKeyPath))
             {
                 if (key == null) return false;
@@ -123,6 +129,11 @@ namespace ContextMenuManager.Methods
 
         public void Install()
         {
+            if (InstallOverride != null)
+            {
+                InstallOverride();
+                return;
+            }
             if (ParentMenu != null)
             {
                 ParentMenu.EnsureInstalled();
@@ -131,21 +142,35 @@ namespace ContextMenuManager.Methods
             foreach (var entry in Entries)
             {
                 string fullPath = ResolvePath(RootKeyPath, entry.SubPath);
+                WriteEntry(fullPath, entry);
+            }
 
-                using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(fullPath, RegistryKeyPermissionCheck.ReadWriteSubTree))
+            foreach (var entry in AdditionalInstallEntries)
+            {
+                WriteEntry(entry.SubPath, entry);
+            }
+        }
+
+        private static void WriteEntry(string fullPath, RegistryKeyEntry entry)
+        {
+            using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(fullPath, RegistryKeyPermissionCheck.ReadWriteSubTree))
+            {
+                if (key == null) return;
+                foreach (var val in entry.Values)
                 {
-                    if (key == null) continue;
-                    foreach (var val in entry.Values)
-                    {
-                        if (val.Name == "@") key.SetValue("", val.Value, val.Kind);
-                        else key.SetValue(val.Name, val.Value, val.Kind);
-                    }
+                    if (val.Name == "@") key.SetValue("", val.Value, val.Kind);
+                    else key.SetValue(val.Name, val.Value, val.Kind);
                 }
             }
         }
 
         public void Uninstall()
         {
+            if (UninstallOverride != null)
+            {
+                UninstallOverride();
+                return;
+            }
             try
             {
                 Registry.ClassesRoot.DeleteSubKeyTree(RootKeyPath, false);
@@ -347,6 +372,31 @@ namespace ContextMenuManager.Methods
                 }
             };
 
+            var locksmith = new CustomPreset
+            {
+                Id = "FileLocksmith",
+                Name = "Unlock with File Locksmith",
+                Description = "Find processes that are using the selected file, inspect their details, reload the scan, restart elevated, or end a blocking task.",
+                Category = PresetCategory.File,
+                ExtensionGroup = "All Files (*)",
+                SubMenuGroup = "File Management",
+                IconLocation = "shell32.dll,-16769",
+                ParentMenu = fileMgmtParent,
+                RootKeyPath = @"*\shell\FileManagement\shell\FileLocksmith",
+                IsActiveOverride = () => FileLocksmithManager.IsContextMenuInstalled(),
+                InstallOverride = () => FileLocksmithManager.InstallContextMenu(),
+                UninstallOverride = () => FileLocksmithManager.UninstallContextMenu()
+            };
+            var eLocksmith = new RegistryKeyEntry("");
+            eLocksmith.Add("MUIVerb", "Unlock with File Locksmith");
+            eLocksmith.Add("Icon", "shell32.dll,-16769");
+            eLocksmith.Add("NeverDefault", "");
+            locksmith.Entries.Add(eLocksmith);
+            var eLocksmithCmd = new RegistryKeyEntry("command");
+            eLocksmithCmd.Add("@", FileLocksmithManager.BuildShellCommand());
+            locksmith.Entries.Add(eLocksmithCmd);
+            Presets.Add(locksmith);
+
             var takeOwn = new CustomPreset
             {
                 Id = "FileTakeOwnership",
@@ -374,7 +424,7 @@ namespace ContextMenuManager.Methods
             {
                 Id = "FileCalculateHash",
                 Name = "Calculate Hash",
-                Description = "Compute SHA1, SHA256, SHA384, SHA512, MD5, or RIPEMD160 hashes",
+                Description = "Compute SHA1, SHA256, SHA384, SHA512, MACTripleDES, MD5, or RIPEMD160 hashes",
                 Category = PresetCategory.File,
                 ExtensionGroup = "All Files (*)",
                 SubMenuGroup = "File Management",
@@ -386,7 +436,7 @@ namespace ContextMenuManager.Methods
             eHash.Add("MUIVerb", "Calculate Hash");
             eHash.Add("SubCommands", "");
             hashMenu.Entries.Add(eHash);
-            string[] algs = { "SHA1", "SHA256", "SHA384", "SHA512", "MD5", "RIPEMD160" };
+            string[] algs = { "SHA1", "SHA256", "SHA384", "SHA512", "MACTripleDES", "MD5", "RIPEMD160" };
             for (int i = 0; i < algs.Length; i++)
             {
                 string sub = $"shell\\0{i + 1}{algs[i]}";
@@ -564,6 +614,16 @@ namespace ContextMenuManager.Methods
             var eDllR = new RegistryKeyEntry("Command");
             eDllR.Add("@", "regsvr32.exe \"%1\"");
             dllReg.Entries.Add(eDllR);
+            var eOcxR = new RegistryKeyEntry(@"ocxfile\shell\Register\Command");
+            eOcxR.Add("@", "regsvr32.exe \"%1\"");
+            dllReg.AdditionalInstallEntries.Add(eOcxR);
+            dllReg.AdditionalDeletePaths.Add(@"ocxfile\shell\Register");
+            dllReg.IsActiveOverride = () =>
+            {
+                using (var dllKey = Registry.ClassesRoot.OpenSubKey(@"dllfile\shell\Register"))
+                using (var ocxKey = Registry.ClassesRoot.OpenSubKey(@"ocxfile\shell\Register"))
+                    return dllKey != null && ocxKey != null;
+            };
             Presets.Add(dllReg);
 
             var dllUnreg = new CustomPreset
@@ -579,7 +639,77 @@ namespace ContextMenuManager.Methods
             var eDllU = new RegistryKeyEntry("Command");
             eDllU.Add("@", "regsvr32.exe /u \"%1\"");
             dllUnreg.Entries.Add(eDllU);
+            var eOcxU = new RegistryKeyEntry(@"ocxfile\shell\Unregister\Command");
+            eOcxU.Add("@", "regsvr32.exe /u \"%1\"");
+            dllUnreg.AdditionalInstallEntries.Add(eOcxU);
+            dllUnreg.AdditionalDeletePaths.Add(@"ocxfile\shell\Unregister");
+            dllUnreg.IsActiveOverride = () =>
+            {
+                using (var dllKey = Registry.ClassesRoot.OpenSubKey(@"dllfile\shell\Unregister"))
+                using (var ocxKey = Registry.ClassesRoot.OpenSubKey(@"ocxfile\shell\Unregister"))
+                    return dllKey != null && ocxKey != null;
+            };
             Presets.Add(dllUnreg);
+
+            // === SHELL NEW: CREATE A PLAIN TEXT FILE ===
+            // Add only the NullFile value; leave any existing ShellNew configuration intact.
+            var newTxt = new CustomPreset
+            {
+                Id = "NewTxtFile",
+                Name = "TXT File in New Menu",
+                Description = "Adds the standard option to create an empty .txt file from Explorer's New menu.",
+                Category = PresetCategory.File,
+                ExtensionGroup = "New Menu Items",
+                IconLocation = "notepad.exe,0",
+                RootKeyPath = @".txt\ShellNew",
+                IsActiveOverride = () =>
+                {
+                    using (var key = Registry.ClassesRoot.OpenSubKey(@".txt\ShellNew"))
+                        return key != null && Array.IndexOf(key.GetValueNames(), "NullFile") >= 0;
+                },
+                InstallOverride = () =>
+                {
+                    using (var key = Registry.ClassesRoot.CreateSubKey(@".txt\ShellNew"))
+                        key?.SetValue("NullFile", string.Empty, RegistryValueKind.String);
+                },
+                UninstallOverride = () =>
+                {
+                    using (var key = Registry.ClassesRoot.OpenSubKey(@".txt\ShellNew", true))
+                    {
+                        if (key == null) return;
+                        key.DeleteValue("NullFile", false);
+                        if (key.ValueCount == 0 && key.SubKeyCount == 0)
+                        {
+                            // Delete the empty child key after closing it below.
+                        }
+                        else return;
+                    }
+                    using (var txt = Registry.ClassesRoot.OpenSubKey(@".txt", true))
+                        txt?.DeleteSubKey("ShellNew", false);
+                }
+            };
+            Presets.Add(newTxt);
+
+            // === POWERSHELL SCRIPT OPEN VERB ===
+            // Unlike the source .reg, this does not replace the .ps1 default association or weaken policy.
+            var ps1Open = new CustomPreset
+            {
+                Id = "Ps1OpenWithPowerShell",
+                Name = "Open with Windows PowerShell",
+                Description = "Adds an explicit PowerShell open command for .ps1 files while preserving the existing file association and execution policy.",
+                Category = PresetCategory.File,
+                ExtensionGroup = "PowerShell Scripts (.ps1)",
+                IconLocation = "powershell.exe,0",
+                RootKeyPath = @"SystemFileAssociations\.ps1\shell\OpenWithWindowsPowerShell"
+            };
+            var ePs1Open = new RegistryKeyEntry("");
+            ePs1Open.Add("MUIVerb", "Open with Windows PowerShell");
+            ePs1Open.Add("Icon", "powershell.exe,0");
+            ps1Open.Entries.Add(ePs1Open);
+            var ePs1OpenCmd = new RegistryKeyEntry("command");
+            ePs1OpenCmd.Add("@", "\"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoLogo -NoProfile -File \"%1\"", RegistryValueKind.ExpandString);
+            ps1Open.Entries.Add(ePs1OpenCmd);
+            Presets.Add(ps1Open);
         }
 
         private static void InitFolderPresets()
@@ -598,6 +728,46 @@ namespace ContextMenuManager.Methods
                     new RegistryValueItem("SubCommands", "")
                 }
             };
+
+            var folderColorizer = new CustomPreset
+            {
+                Id = "FolderColorizer",
+                Name = "Mark folder as...",
+                Description = "Installs exactly three independent cascades. Mark folder as can be edited directly; existing custom package icons are imported into it without creating extra context-menu roots. The selected folder receives a hidden/system desktop.ini and a randomized .ico file.",
+                Category = PresetCategory.Folder,
+                ExtensionGroup = "Folder Utilities",
+                IconLocation = "explorer.exe,0",
+                RootKeyPath = @"Directory\shell\ContextMenuManager.FolderColorizer.010.builtin-status",
+                IsActiveOverride = () => FolderColorizerManager.IsContextMenuInstalled(),
+                InstallOverride = () => FolderColorizerManager.InstallContextMenu(),
+                UninstallOverride = () => FolderColorizerManager.UninstallContextMenu()
+            };
+            Presets.Add(folderColorizer);
+
+            var folderLocksmith = new CustomPreset
+            {
+                Id = "FolderFileLocksmith",
+                Name = "Unlock with File Locksmith",
+                Description = "Scans files inside the selected folder and identifies processes that are using them. Supports reload, elevation, and ending a blocking task.",
+                Category = PresetCategory.Folder,
+                ExtensionGroup = "Folder Utilities",
+                SubMenuGroup = "Folder Management",
+                IconLocation = "shell32.dll,-16769",
+                ParentMenu = folderMgmtParent,
+                RootKeyPath = @"Directory\shell\FolderManagement\shell\FileLocksmith",
+                IsActiveOverride = () => FileLocksmithManager.IsContextMenuInstalled(),
+                InstallOverride = () => FileLocksmithManager.InstallContextMenu(),
+                UninstallOverride = () => FileLocksmithManager.UninstallContextMenu()
+            };
+            var eFolderLocksmith = new RegistryKeyEntry("");
+            eFolderLocksmith.Add("MUIVerb", "Unlock with File Locksmith");
+            eFolderLocksmith.Add("Icon", "shell32.dll,-16769");
+            eFolderLocksmith.Add("NeverDefault", "");
+            folderLocksmith.Entries.Add(eFolderLocksmith);
+            var eFolderLocksmithCmd = new RegistryKeyEntry("command");
+            eFolderLocksmithCmd.Add("@", FileLocksmithManager.BuildShellCommand());
+            folderLocksmith.Entries.Add(eFolderLocksmithCmd);
+            Presets.Add(folderLocksmith);
 
             var emptyFolder = new CustomPreset
             {

@@ -9,7 +9,7 @@ namespace BluePointLilac.Controls
 {
     public sealed class MyStatusBar : Panel
     {
-        public static readonly string DefaultText = "Ver: 3.3.4.0 (.NET 4.8)";
+        public static readonly string DefaultText = "Ver: 3.3.4.4 (.NET 4.8)";
 
 
 		public MyStatusBar()

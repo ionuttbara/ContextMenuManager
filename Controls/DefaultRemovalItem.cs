@@ -55,7 +55,7 @@ namespace ContextMenuManager.Controls
 
                 if (this.ChkVisible != null)
                 {
-                    this.ChkVisible.Checked = value;
+                    this.ChkVisible.Checked = this.ItemVisible;
                 }
             }
         }

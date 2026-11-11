@@ -1,4 +1,4 @@
-using BluePointLilac.Controls;
+﻿using BluePointLilac.Controls;
 using ContextMenuManager.BluePointLilac.Methods;
 using ContextMenuManager.Controls.Interfaces;
 using ContextMenuManager.Methods;
@@ -51,7 +51,7 @@ namespace ContextMenuManager.Controls
     sealed class TerminalBlockExtensionItem : MyListItem, IChkVisibleItem
     {
         public VisibleCheckBox ChkVisible { get; set; }
-        public string Description => "Blocks default Windows 11 Terminal extension {9F156763-7844-4DC4-B2B1-901F640F5155} and cleans duplicate cmd/powershell/wsl verbs.";
+        public string Description => "Blocks the default Windows Terminal shell extension and backs up the legacy CMD/PowerShell/WSL verbs so they can be restored when this toggle is turned off.";
         public string ItemFilePath => Description;
 
         public bool ItemVisible
@@ -60,7 +60,7 @@ namespace ContextMenuManager.Controls
             set
             {
                 TerminalProfilesManager.SetTerminalBlocked(value);
-                if (this.ChkVisible != null) this.ChkVisible.Checked = value;
+                if (this.ChkVisible != null) this.ChkVisible.Checked = this.ItemVisible;
             }
         }
 

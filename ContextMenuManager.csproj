@@ -25,7 +25,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>3.3.4.2</ApplicationVersion>
+    <ApplicationVersion>3.5.2.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -157,6 +157,12 @@
     <Compile Include="Controls\CustomPresetList.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Controls\FolderColorizerManagerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\FileLocksmithForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Controls\DefaultRemovalItem.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -197,6 +203,13 @@
     </Compile>
     <Compile Include="BluePointLilac.Methods\ComboBoxExtension.cs" />
     <Compile Include="Methods\CustomPresetsManager.cs" />
+    <Compile Include="Methods\FolderColorizerManager.cs" />
+    <Compile Include="Methods\FolderManagementManager.cs" />
+    <Compile Include="Controls\FolderManagementPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Methods\FileLocksmithManager.cs" />
+    <Compile Include="Methods\RegistryTreeBackupManager.cs" />
     <Compile Include="Methods\DefaultMenuRemovalManager.cs" />
     <Compile Include="Methods\DesktopIni.cs" />
     <Compile Include="BluePointLilac.Methods\ElevatedFileDroper.cs" />
@@ -459,6 +472,146 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\00.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.00.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\01.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.01.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\02.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.02.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\03.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.03.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\04.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.04.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\05.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.05.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\06.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.06.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\07.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.07.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\08.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.08.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\09.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.09.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\10.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.10.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\11.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.11.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\12.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.12.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\13.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.13.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\14.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.14.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_01\empty.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_01.empty.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\00.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.00.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\01.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.01.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\02.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.02.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\03.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.03.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\04.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.04.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\05.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.05.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\06.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.06.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\07.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.07.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\08.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.08.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\09.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.09.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\10.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.10.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\11.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.11.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\12.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.12.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\13.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.13.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_02\14.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_02.14.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\00.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.00.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\01.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.01.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\02.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.02.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\03.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.03.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\04.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.04.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\05.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.05.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\06.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.06.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\07.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.07.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\08.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.08.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\09.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.09.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\10.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.10.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\11.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.11.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\12.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.12.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\13.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.13.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources\FolderColorizer\Pack_03\14.ico">
+      <LogicalName>ContextMenuManager.FolderColorizer.Pack_03.14.ico</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

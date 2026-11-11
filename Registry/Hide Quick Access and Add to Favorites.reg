@@ -1,0 +1,25 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\Drive\shell\pintohome]
+"ProgrammaticAccessOnly"=""
+
+[HKEY_CURRENT_USER\Software\Classes\Folder\shell\pintohome]
+"ProgrammaticAccessOnly"=""
+
+[HKEY_CURRENT_USER\Software\Classes\Network\shell\pintohome]
+"ProgrammaticAccessOnly"=""
+
+[HKEY_CLASSES_ROOT\Drive\shell\pintohome]
+"ProgrammaticAccessOnly"=""
+
+[HKEY_CLASSES_ROOT\Folder\shell\pintohome]
+"ProgrammaticAccessOnly"=""
+
+[HKEY_CLASSES_ROOT\Network\shell\pintohome]
+"ProgrammaticAccessOnly"=""
+
+[HKEY_CURRENT_USER\Software\Classes\*\shell\pintohomefile]
+"ProgrammaticAccessOnly"=""
+
+[HKEY_CLASSES_ROOT\*\shell\pintohomefile]
+"ProgrammaticAccessOnly"=""

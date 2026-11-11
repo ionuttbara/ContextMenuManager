@@ -31,29 +31,57 @@ namespace ContextMenuManager
                 if (!isSwitching) SwitchItem();
             };
 
-            this.FormClosing += (sender, e) => CloseMainForm();
+            this.FormClosing += (sender, e) =>
+            {
+                if (!folderManagementPanel.ConfirmClose()) { e.Cancel = true; return; }
+                CloseMainForm();
+            };
             HoveredToShowItemPath();
             DragDropToAnalysis();
             AddContextMenus();
             ResizeSideBar();
             JumpItem(0, 0);
+
+            // Rebuild an already-enabled Folder Colorizer menu after application updates so
+            // Explorer immediately sees all integrated packs and the current executable path.
+            try { FolderColorizerManager.RefreshContextMenuIfInstalled(); }
+            catch (Exception ex)
+            {
+                FolderColorizerManager.LogInstallFailure("Startup menu refresh", ex);
+                Shown += (sender, args) => MessageBox.Show(
+                    "Folder Colorizer could not update Explorer's context menu. " +
+                    "The previously registered menu was preserved where possible.\n\n" + ex.Message +
+                    "\n\nSee FolderColorizer\\install-errors.log under Gallery Inc in ProgramData.",
+                    Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         readonly MyToolBarButton[] ToolBarButtons =
         {
             new MyToolBarButton(AppImage.ToolbarHome, UiLanguage.Text("CurrentItems")),
             new MyToolBarButton(AppImage.ToolbarType, AppString.ToolBar.Type),
-            new MyToolBarButton(AppImage.ToolbarCustom, UiLanguage.Text("AddCustomItems")),
-            new MyToolBarButton(AppImage.ToolbarRemove, UiLanguage.Text("RemoveDefaultMenus")),
+            new MyToolBarButton(AppImage.ToolbarCustom, ToolCaption(UiLanguage.Text("AddCustomItems"))),
+            new MyToolBarButton(AppImage.ToolbarRemove, ToolCaption(UiLanguage.Text("RemoveDefaultMenus"))),
+            new MyToolBarButton(AppImage.TintIcon(AppImage.Folder, Color.FromArgb(60, 150, 185)), ToolCaption(UiLanguage.Text("FolderManagement"))),
             new MyToolBarButton(AppImage.ToolbarAbout, AppString.ToolBar.About)
         };
+
+        private static string ToolCaption(string label)
+        {
+            if (label == null || label.Length < 17 || !label.Contains(" ")) return label;
+            int middle = label.Length / 2;
+            int breakAt = label.LastIndexOf(' ', middle);
+            int after = label.IndexOf(' ', middle);
+            if (breakAt < 1 || after >= 0 && after - middle < middle - breakAt) breakAt = after;
+            return breakAt <= 0 ? label : label.Substring(0, breakAt) + "\n" + label.Substring(breakAt + 1);
+        }
 
         private Control[] MainControls => new Control[]
         {
             shellList, shellNewList, sendToList, openWithList, winXList,
             detailedEditList, guidBlockedList, iEList,
             appSettingBox, aboutMeBox, storeAppsList,
-            customPresetList, defaultRemovalList, terminalList
+            customPresetList, defaultRemovalList, terminalList, folderManagementPanel
         };
 
         readonly ShellList shellList = new ShellList();
@@ -71,54 +99,52 @@ namespace ContextMenuManager
         readonly ExplorerRestarter explorerRestarter = new ExplorerRestarter();
         readonly CustomPresetList customPresetList = new CustomPresetList();
         readonly DefaultRemovalList defaultRemovalList = new DefaultRemovalList();
+        readonly FolderManagementPanel folderManagementPanel = new FolderManagementPanel();
 
         private Control currentActiveControl = null;
         private bool isSwitching = false;
 
         // Tab 0: Current items
-        static readonly string[] GeneralItems =
-        {
-            AppString.SideBar.File,
-            AppString.SideBar.Folder,
-            AppString.SideBar.Directory,
-            AppString.SideBar.Background,
-            AppString.SideBar.Desktop,
-            AppString.SideBar.Drive,
-            AppString.SideBar.AllObjects,
-            AppString.SideBar.Computer,
-            AppString.SideBar.RecycleBin,
-            AppString.SideBar.Library,
-            UiLanguage.Text("MicrosoftStoreApps"),
-            UiLanguage.Text("Terminal"),
-            null,
-            AppString.SideBar.New,
-            AppString.SideBar.SendTo,
-            AppString.SideBar.OpenWith,
-            null,
-            AppString.SideBar.WinX
-        };
+        // Windows 11 (build 22000+) replaced the classic editable Win+X layout with a
+        // system-owned menu. Keep the Win+X editor available on Windows 8/8.1/10, but do
+        // not expose a dead tab on Windows 11 and newer.
+        static readonly string[] GeneralItems = WinOsVersion.IsWindows11OrLater
+            ? new[]
+            {
+                AppString.SideBar.File, AppString.SideBar.Folder, AppString.SideBar.Directory,
+                AppString.SideBar.Background, AppString.SideBar.Desktop, AppString.SideBar.Drive,
+                AppString.SideBar.AllObjects, AppString.SideBar.Computer, AppString.SideBar.RecycleBin,
+                AppString.SideBar.Library, UiLanguage.Text("MicrosoftStoreApps"), UiLanguage.Text("Terminal"),
+                null, AppString.SideBar.New, AppString.SideBar.SendTo, AppString.SideBar.OpenWith
+            }
+            : new[]
+            {
+                AppString.SideBar.File, AppString.SideBar.Folder, AppString.SideBar.Directory,
+                AppString.SideBar.Background, AppString.SideBar.Desktop, AppString.SideBar.Drive,
+                AppString.SideBar.AllObjects, AppString.SideBar.Computer, AppString.SideBar.RecycleBin,
+                AppString.SideBar.Library, UiLanguage.Text("MicrosoftStoreApps"), UiLanguage.Text("Terminal"),
+                null, AppString.SideBar.New, AppString.SideBar.SendTo, AppString.SideBar.OpenWith,
+                null, AppString.SideBar.WinX
+            };
 
-        static readonly string[] GeneralItemInfos =
-        {
-            AppString.StatusBar.File,
-            AppString.StatusBar.Folder,
-            AppString.StatusBar.Directory,
-            AppString.StatusBar.Background,
-            AppString.StatusBar.Desktop,
-            AppString.StatusBar.Drive,
-            AppString.StatusBar.AllObjects,
-            AppString.StatusBar.Computer,
-            AppString.StatusBar.RecycleBin,
-            AppString.StatusBar.Library,
-            UiLanguage.Text("StoreAppsInfo"),
-            UiLanguage.Text("TerminalInfo"),
-            null,
-            AppString.StatusBar.New,
-            AppString.StatusBar.SendTo,
-            AppString.StatusBar.OpenWith,
-            null,
-            AppString.StatusBar.WinX
-        };
+        static readonly string[] GeneralItemInfos = WinOsVersion.IsWindows11OrLater
+            ? new[]
+            {
+                AppString.StatusBar.File, AppString.StatusBar.Folder, AppString.StatusBar.Directory,
+                AppString.StatusBar.Background, AppString.StatusBar.Desktop, AppString.StatusBar.Drive,
+                AppString.StatusBar.AllObjects, AppString.StatusBar.Computer, AppString.StatusBar.RecycleBin,
+                AppString.StatusBar.Library, UiLanguage.Text("StoreAppsInfo"), UiLanguage.Text("TerminalInfo"),
+                null, AppString.StatusBar.New, AppString.StatusBar.SendTo, AppString.StatusBar.OpenWith
+            }
+            : new[]
+            {
+                AppString.StatusBar.File, AppString.StatusBar.Folder, AppString.StatusBar.Directory,
+                AppString.StatusBar.Background, AppString.StatusBar.Desktop, AppString.StatusBar.Drive,
+                AppString.StatusBar.AllObjects, AppString.StatusBar.Computer, AppString.StatusBar.RecycleBin,
+                AppString.StatusBar.Library, UiLanguage.Text("StoreAppsInfo"), UiLanguage.Text("TerminalInfo"),
+                null, AppString.StatusBar.New, AppString.StatusBar.SendTo, AppString.StatusBar.OpenWith,
+                null, AppString.StatusBar.WinX
+            };
 
         static readonly ShellList.Scenes[] GeneralShellScenes =
         {
@@ -217,7 +243,11 @@ namespace ContextMenuManager
             UiLanguage.Text("InfoSystemRemoval")
         };
 
-        // Tab 4: About
+        // Tab 4: Folder Management (Rust namespace folders ported to .NET)
+        static readonly string[] FolderManagementItems = { UiLanguage.Text("FolderProfiles") };
+        static readonly string[] FolderManagementInfos = { UiLanguage.Text("FolderProfilesInfo") };
+
+        // Tab 5: About
         static readonly string[] AboutItems =
         {
             AppString.SideBar.AppSetting,
@@ -230,7 +260,7 @@ namespace ContextMenuManager
             AppString.SideBar.AboutApp
         };
 
-        readonly int[] lastItemIndex = new int[5];
+        readonly int[] lastItemIndex = new int[6];
 
         public void JumpItem(int toolBarIndex, int sideBarIndex)
         {
@@ -277,7 +307,8 @@ namespace ContextMenuManager
                 case 1: SideBar.ItemNames = TypeItems; break;
                 case 2: SideBar.ItemNames = CustomRuleItems; break;
                 case 3: SideBar.ItemNames = DefaultRemovalSideBarItems; break;
-                case 4: SideBar.ItemNames = AboutItems; break;
+                case 4: SideBar.ItemNames = FolderManagementItems; break;
+                case 5: SideBar.ItemNames = AboutItems; break;
             }
         }
 
@@ -318,7 +349,10 @@ namespace ContextMenuManager
                 case 1: SwitchTypeItem(); break;
                 case 2: SwitchCustomRuleItem(); break;
                 case 3: SwitchDefaultRemovalItem(); break;
-                case 4: SwitchAboutItem(); break;
+                case 4:
+                    ActivateControl(folderManagementPanel, () => { if (!folderManagementPanel.IsLoaded) folderManagementPanel.LoadData(); });
+                    break;
+                case 5: SwitchAboutItem(); break;
             }
         }
 
@@ -342,6 +376,9 @@ namespace ContextMenuManager
                         if (i < DefaultRemovalSideBarItemInfos.Length) { StatusBar.Text = DefaultRemovalSideBarItemInfos[i]; return; }
                         break;
                     case 4:
+                        if (i < FolderManagementInfos.Length) { StatusBar.Text = FolderManagementInfos[i]; return; }
+                        break;
+                    case 5:
                         if (i < AboutItemInfos.Length) { StatusBar.Text = AboutItemInfos[i]; return; }
                         break;
                 }
@@ -404,7 +441,8 @@ namespace ContextMenuManager
                     ActivateControl(openWithList, () => { if (openWithList.Controls.Count == 0) openWithList.LoadItems(); });
                     break;
                 case 17:
-                    ActivateControl(winXList, () => winXList.LoadItems());
+                    if (!WinOsVersion.IsWindows11OrLater)
+                        ActivateControl(winXList, () => winXList.LoadItems());
                     break;
                 default:
                     if (SideBar.SelectedIndex < 10)
@@ -491,7 +529,7 @@ namespace ContextMenuManager
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 10, FontStyle.Bold);
             aboutMeBox.AppendText(UiLanguage.Text("TechnicalDetails") + ":\n");
             aboutMeBox.SelectionFont = new Font(aboutMeBox.Font.FontFamily, 9.5F, FontStyle.Regular);
-            aboutMeBox.AppendText("• Version: 3.3.4.2\n");
+            aboutMeBox.AppendText("• Version: 3.5.2.0\n");
             aboutMeBox.AppendText("• Platform: Microsoft .NET Framework 4.8\n");
             aboutMeBox.AppendText("• Architecture: AnyCPU (Native 64-bit / ARM64 / 32-bit execution)\n");
             aboutMeBox.AppendText("• DPI Awareness: Per-Monitor V2 High-DPI auto-rescaling enabled\n\n");
@@ -502,8 +540,12 @@ namespace ContextMenuManager
             aboutMeBox.AppendText("1. Windows Terminal Integration: Dynamic profile discovery from settings.json across all editions (Stable, Preview, Canary, Dev, Unpackaged) with JSON Profile Backup & Restore and native CMD / PowerShell 5 fallback.\n");
             aboutMeBox.AppendText("2. Add Custom Items: Deep system presets including Dedicated vs. Integrated GPU preferences, real-time CPU priority, Windows Firewall access rules, NT SERVICE\\TrustedInstaller privileges, Take Ownership, and recursive file tools.\n");
             aboutMeBox.AppendText("3. Remove Default Menus: Registry toggle hub to eliminate unwanted built-in context menus (Previous Versions, Print, Send To, Troubleshoot Compatibility, BitLocker Drive, Defender EPP, ISO Burn, etc.) with instant non-destructive restoration.\n");
-            aboutMeBox.AppendText("4. Win+X Stability Protection: Automated duplicate detection and cleanup preventing Windows Update and system restarts from restoring duplicate default shortcuts.\n");
-            aboutMeBox.AppendText("5. Instant Performance: GDI icon memory caching and multi-pass layout suspension delivering instantaneous tab and submenu switching.");
+            if (!WinOsVersion.IsWindows11OrLater)
+                aboutMeBox.AppendText("4. Win+X Stability Protection: Windows 8/10 shortcut metadata maintenance and duplicate cleanup.\n");
+            else
+                aboutMeBox.AppendText("4. Windows 11 Integration: Legacy Win+X editing is hidden on build 22000+ because the menu is system-owned.\n");
+            aboutMeBox.AppendText("5. Folder Colorizer: All installed icon packages are exposed as independent nested menus under Mark folder as....\n");
+            aboutMeBox.AppendText("6. Instant Performance: GDI icon memory caching and multi-pass layout suspension delivering instantaneous tab and submenu switching.");
 
             aboutMeBox.ResumeLayout();
         }
@@ -523,7 +565,8 @@ namespace ContextMenuManager
                 { ToolBarButtons[1], TypeItems },
                 { ToolBarButtons[2], CustomRuleItems },
                 { ToolBarButtons[3], DefaultRemovalSideBarItems },
-                { ToolBarButtons[4], AboutItems }
+                { ToolBarButtons[4], FolderManagementItems },
+                { ToolBarButtons[5], AboutItems }
             };
 
             foreach (var item in dic)
@@ -556,7 +599,7 @@ namespace ContextMenuManager
                         cms.Items.Add(tsi);
                         int toolBarIndex = ToolBar.Controls.GetChildIndex(item.Key);
                         int index = i;
-                        if (toolBarIndex != 4)
+                        if (toolBarIndex != 5)
                         {
                             tsi.Click += (sender, e) => JumpItem(toolBarIndex, index);
                             cms.Opening += (sender, e) => tsi.Checked = lastItemIndex[toolBarIndex] == index;
